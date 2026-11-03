@@ -12,7 +12,7 @@
     
     <groupId>ru.ulstu</groupId>
     <artifactId>grade-analysis</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.0</version>
     <name>grade-analysis</name>
     <description>Grade Analysis Course Project</description>
 
@@ -44,24 +44,26 @@
             </plugin>
 
             <!-- Spotless (автоформатирование) -->
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <version>2.43.0</version>
-                <configuration>
-                    <java>
-                        <googleJavaFormat/>
-                    </java>
-                </configuration>
-                <executions>
-                    <execution>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+        <plugin>
+            <groupId>com.diffplug.spotless</groupId>
+            <artifactId>spotless-maven-plugin</artifactId>
+            <version>2.43.0</version>
+            <configuration>
+                <java>
+                    <googleJavaFormat>
+                        <version>1.28.0</version>
+                    </googleJavaFormat>
+                </java>
+            </configuration>
+            <executions>
+                <execution>
+                    <phase>compile</phase>
+                    <goals>
+                        <goal>check</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
 
             <!-- Checkstyle (статический анализ) -->
             <plugin>
