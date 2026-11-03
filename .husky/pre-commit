@@ -1,1 +1,2 @@
+./mvnw validate
 ./mvnw test

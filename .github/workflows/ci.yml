@@ -1,0 +1,53 @@
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "main", "feature/**", "infra/**" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+        cache: maven
+
+    - name: Build and run checks with Maven
+      run: ./mvnw clean verify
+
+    - name: Upload JaCoCo Coverage Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: jacoco-report
+        path: target/site/jacoco/
+
+    - name: Upload JAR Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: grade-analysis-jar
+        path: target/*.jar
+
+    - name: Build Docker Image
+      run: docker build -t grade-analysis:${{ github.sha }} .
+
+    - name: Print Quality Metrics Summary
+      run: |
+        echo "=== МЕТРИКИ КАЧЕСТВА ==="
+        echo "1. Результаты тестов:"
+        grep -h "Tests run:" target/surefire-reports/*.txt || echo "Тесты не найдены"
+        echo ""
+        echo "2. Покрытие кода (из отчета JaCoCo):"
+        if [ -f target/site/jacoco/jacoco.csv ]; then
+          head -n 5 target/site/jacoco/jacoco.csv
+        else
+          echo "Отчет JaCoCo не найден"
+        fi
