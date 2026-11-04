@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002
+      author: kalimullin
+      changes:
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: ADMIN
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: TEACHER
+        - insert:
+            tableName: roles
+            columns:
+              - column:
+                  name: name
+                  value: STUDENT
