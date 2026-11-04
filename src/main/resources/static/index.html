@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Главная страница</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; background-color: #f4f4f9; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; margin-bottom: 20px; }
+        .logout-btn { background-color: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .logout-btn:hover { background-color: #c82333; }
+        .content { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h2>Система анализа успеваемости</h2>
+        <button class="logout-btn" id="logoutBtn" style="display: none;">Выйти</button>
+    </div>
+
+    <div id="unauthorized" style="text-align: center;">
+        <p>Вы не авторизованы.</p>
+        <a href="/login.html">Перейти на страницу входа</a>
+    </div>
+
+    <div id="dashboard" class="content">
+        <h3>Добро пожаловать!</h3>
+        <p><strong>Ваша роль:</strong> <span id="userRole"></span></p>
+        <p><em>(Здесь в будущем будет панель управления в зависимости от роли)</em></p>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('token');
+    const role = localStorage.getItem('role');
+
+    const unauthorizedBlock = document.getElementById('unauthorized');
+    const dashboardBlock = document.getElementById('dashboard');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    if (token && role) {
+        unauthorizedBlock.style.display = 'none';
+        dashboardBlock.style.display = 'block';
+        logoutBtn.style.display = 'block';
+        
+        document.getElementById('userRole').textContent = role.replace('ROLE_', '');
+    } else {
+        unauthorizedBlock.style.display = 'block';
+        dashboardBlock.style.display = 'none';
+        logoutBtn.style.display = 'none';
+    }
+
+    logoutBtn.addEventListener('click', async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+            console.error(e);
+        }
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        window.location.href = '/login.html';
+    });
+</script>
+</body>
+</html>

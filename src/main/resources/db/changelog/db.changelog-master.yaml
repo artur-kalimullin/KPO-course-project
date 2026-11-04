@@ -3,3 +3,5 @@ databaseChangeLog:
       file: classpath:db/changelog/001-init-schema.yaml
   - include:
       file: classpath:db/changelog/002-insert-roles.yaml
+  - include:
+      file: classpath:db/changelog/003-insert-admin.yaml
