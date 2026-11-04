@@ -26,3 +26,7 @@ spring:
 logging:
   level:
     liquibase: DEBUG
+
+jwt:
+  secret: "verySecretKeyForJWTTokenGenerationMustBeLongEnough12345666"
+  expiration: 86400000
