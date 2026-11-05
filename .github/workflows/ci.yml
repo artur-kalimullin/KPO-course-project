@@ -6,24 +6,15 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  pull-requests: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_DB: grade_analysis
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
     - name: Checkout code
@@ -36,18 +27,32 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Make mvnw executable
+      run: chmod +x mvnw
+
     - name: Build and run checks with Maven
-      env:
-        DB_URL: jdbc:postgresql://localhost:5432/grade_analysis
-        DB_USERNAME: postgres
-        DB_PASSWORD: postgres
       run: ./mvnw clean verify
 
-    - name: Upload JaCoCo Coverage Report
-      uses: actions/upload-artifact@v4
+    - name: Deploy JaCoCo report to GitHub Pages
+      if: github.ref == 'refs/heads/main'
+      uses: JamesIves/github-pages-deploy-action@v4
       with:
-        name: jacoco-report
-        path: target/site/jacoco/
+        branch: gh-pages
+        folder: target/site/jacoco
+        target-folder: jacoco
+        clean: true
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add JaCoCo report to PR comment
+      if: github.event_name == 'pull_request'
+      uses: Madrapps/jacoco-report@v1.7.2
+      with:
+        paths: ${{ github.workspace }}/target/site/jacoco/jacoco.xml
+        token: ${{ secrets.GITHUB_TOKEN }}
+        title: '📊 Отчет о покрытии кода (JaCoCo)'
+        update-comment: true
+        min-coverage-overall: 0
+        min-coverage-changed-files: 0
 
     - name: Upload JAR Artifact
       uses: actions/upload-artifact@v4
@@ -58,15 +63,44 @@ jobs:
     - name: Build Docker Image
       run: docker build -t grade-analysis:${{ github.sha }} .
 
-    - name: Print Quality Metrics Summary
+    - name: Generate Quality Metrics Summary
+      if: always() # Выполнится даже если предыдущие шаги упали (чтобы видеть, где ошибка)
       run: |
-        echo "=== МЕТРИКИ КАЧЕСТВА ==="
-        echo "1. Результаты тестов:"
-        grep -h "Tests run:" target/surefire-reports/*.txt || echo "Тесты не найдены"
-        echo ""
-        echo "2. Покрытие кода (из отчета JaCoCo):"
-        if [ -f target/site/jacoco/jacoco.csv ]; then
-          head -n 5 target/site/jacoco/jacoco.csv
-        else
-          echo "Отчет JaCoCo не найден"
+        echo "## 📈 Сводка метрик качества проекта" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # --- Парсинг результатов тестов из Surefire ---
+        TESTS_RUN=0; FAILURES=0; ERRORS=0; SKIPPED=0; TIME=0
+        if ls target/surefire-reports/*.txt &>/dev/null; then
+          TESTS_RUN=$(grep -h "Tests run:" target/surefire-reports/*.txt | sed 's/.*Tests run: \([0-9]*\).*/\1/' | awk '{s+=$1} END {print s}')
+          FAILURES=$(grep -h "Tests run:" target/surefire-reports/*.txt | sed 's/.*Failures: \([0-9]*\).*/\1/' | awk '{s+=$1} END {print s}')
+          ERRORS=$(grep -h "Tests run:" target/surefire-reports/*.txt | sed 's/.*Errors: \([0-9]*\).*/\1/' | awk '{s+=$1} END {print s}')
+          SKIPPED=$(grep -h "Tests run:" target/surefire-reports/*.txt | sed 's/.*Skipped: \([0-9]*\).*/\1/' | awk '{s+=$1} END {print s}')
+          TIME=$(grep -h "Time elapsed:" target/surefire-reports/*.txt | sed 's/.*Time elapsed: \([0-9.]*\).*/\1/' | awk '{s+=$1} END {print s}')
         fi
+        
+        # --- Парсинг покрытия JaCoCo (суммируем по всем классам) ---
+        COVERAGE_DATA="Данные не найдены"
+        if [ -f target/site/jacoco/jacoco.csv ]; then
+          COVERAGE_DATA=$(awk -F, 'NR>1 {
+            missed_instr += $4; covered_instr += $5;
+            missed_branch += $6; covered_branch += $7;
+          } END {
+            total_instr = missed_instr + covered_instr;
+            total_branch = missed_branch + covered_branch;
+            instr_pct = (total_instr > 0) ? (covered_instr / total_instr * 100) : 0;
+            branch_pct = (total_branch > 0) ? (covered_branch / total_branch * 100) : 0;
+            printf "Инструкции: %.1f%% | Ветвления: %.1f%%", instr_pct, branch_pct;
+          }' target/site/jacoco/jacoco.csv)
+        fi
+        
+        # --- Формирование Markdown-таблицы ---
+        echo "| Категория | Метрика | Значение |" >> $GITHUB_STEP_SUMMARY
+        echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Тестирование** | Всего тестов | $TESTS_RUN |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Тестирование** | Провалено / Ошибок | $FAILURES / $ERRORS |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Тестирование** | Пропущено | $SKIPPED |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Тестирование** | Время выполнения | ${TIME}s |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Покрытие кода** | Покрытие (JaCoCo) | $COVERAGE_DATA |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Отчетность** | HTML-отчет JaCoCo | [Открыть в браузере](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/jacoco/) |" >> $GITHUB_STEP_SUMMARY
+        echo "| **Пайплайн** | Статус сборки | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
