@@ -27,6 +27,9 @@ jobs:
         distribution: 'temurin'
         cache: maven
 
+    - name: Make mvnw executable
+      run: chmod +x mvnw
+
     - name: Build and run checks with Maven
       run: ./mvnw clean verify
 
@@ -38,6 +41,7 @@ jobs:
         folder: target/site/jacoco
         target-folder: jacoco
         clean: true
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add JaCoCo report to PR comment
       if: github.event_name == 'pull_request'
