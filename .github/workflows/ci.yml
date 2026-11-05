@@ -64,7 +64,7 @@ jobs:
       run: docker build -t grade-analysis:${{ github.sha }} .
 
     - name: Generate Quality Metrics Summary
-      if: always()
+      if: always() # Выполнится даже если предыдущие шаги упали (чтобы видеть, где ошибка)
       run: |
         echo "## 📈 Сводка метрик качества проекта" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
