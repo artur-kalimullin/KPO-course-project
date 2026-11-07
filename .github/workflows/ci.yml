@@ -79,7 +79,7 @@ jobs:
                 return "n/a (0/0)"
             return f"{covered / total * 100:.2f}% ({covered}/{total})"
 
-        # --- JaCoCo CSV ---
+        # --- Парсинг JaCoCo CSV ---
         jacoco_csv = Path("target/site/jacoco/jacoco.csv")
         instr_missed = instr_covered = 0
         branch_missed = branch_covered = 0
@@ -97,11 +97,11 @@ jobs:
             instr_text = "n/a (нет jacoco.csv)"
             branch_text = "n/a (нет jacoco.csv)"
 
-        # --- Surefire XML ---
+        # --- Парсинг результатов тестов Surefire XML ---
         tests = failures = errors = skipped = 0
         test_time = 0.0
-
         xml_reports = glob.glob("target/surefire-reports/TEST-*.xml")
+        
         for xml_path in xml_reports:
             root = ET.parse(xml_path).getroot()
             tests += int(root.attrib.get("tests", 0))
@@ -110,14 +110,11 @@ jobs:
             skipped += int(root.attrib.get("skipped", 0))
             test_time += float(root.attrib.get("time", 0.0))
 
-        # Fallback на .txt, если XML почему-то нет
+        # Fallback на TXT, если XML не найдены
         if not xml_reports:
             for txt_path in glob.glob("target/surefire-reports/*.txt"):
                 text = Path(txt_path).read_text(encoding="utf-8", errors="ignore")
-                m = re.search(
-                    r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)",
-                    text,
-                )
+                m = re.search(r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)", text)
                 if m:
                     t, f, e, s = map(int, m.groups())
                     tests += t
@@ -131,21 +128,26 @@ jobs:
         passed = tests - failures - errors - skipped
         failed = failures + errors
 
-        md = f"""### Сводка метрик качества
-
-| Метрика | Значение |
-|---|---|
-| Покрытие кода тестами (instructions) | {instr_text} |
-| Покрытие ветвлений | {branch_text} |
-| Тестов всего | {tests} |
-| Тестов пройдено | {passed} |
-| Тестов упало (failures + errors) | {failed} |
-| Тестов пропущено | {skipped} |
-| Время выполнения тестов | {test_time:.3f} s |
-
-"""
+        # --- Формирование Markdown-таблицы (без ошибок отступов YAML) ---
+        md_lines = [
+            "### Сводка метрик качества",
+            "",
+            "| Метрика | Значение |",
+            "|---|---|",
+            f"| Покрытие кода тестами (instructions) | {instr_text} |",
+            f"| Покрытие ветвлений | {branch_text} |",
+            f"| Тестов всего | {tests} |",
+            f"| Тестов пройдено | {passed} |",
+            f"| Тестов упало (failures + errors) | {failed} |",
+            f"| Тестов пропущено | {skipped} |",
+            f"| Время выполнения тестов | {test_time:.3f} s |",
+            ""
+        ]
+        md = "\n".join(md_lines)
+        
         print(md)
-
+        
+        # Запись в интерфейс GitHub Actions (Summary)
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
             with open(summary_path, "a", encoding="utf-8") as f:
@@ -160,6 +162,7 @@ jobs:
       if: github.event_name == 'push' && github.ref == 'refs/heads/main'
       run: |
         mkdir -p target/site/jacoco
+        # Отключаем Jekyll, чтобы статика отдавалась как есть
         touch target/site/jacoco/.nojekyll
 
     - name: Upload Pages artifact
