@@ -146,6 +146,11 @@
                 <configuration>
                     <propertyName>jacoco.agent.argLine</propertyName>
                     <destFile>${project.build.directory}/jacoco.exec</destFile>
+                    <formats>
+                        <format>HTML</format>
+                        <format>XML</format>
+                        <format>CSV</format>
+                    </formats>
                 </configuration>
                 <executions>
                     <execution>

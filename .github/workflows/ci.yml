@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -58,15 +63,119 @@ jobs:
     - name: Build Docker Image
       run: docker build -t grade-analysis:${{ github.sha }} .
 
-    - name: Print Quality Metrics Summary
+    - name: Build quality metrics summary
       run: |
-        echo "=== МЕТРИКИ КАЧЕСТВА ==="
-        echo "1. Результаты тестов:"
-        grep -h "Tests run:" target/surefire-reports/*.txt || echo "Тесты не найдены"
-        echo ""
-        echo "2. Покрытие кода (из отчета JaCoCo):"
-        if [ -f target/site/jacoco/jacoco.csv ]; then
-          head -n 5 target/site/jacoco/jacoco.csv
-        else
-          echo "Отчет JaCoCo не найден"
-        fi
+        python3 <<'PY'
+        import csv
+        import glob
+        import os
+        import re
+        import xml.etree.ElementTree as ET
+        from pathlib import Path
+
+        def format_pct(covered: int, missed: int) -> str:
+            total = covered + missed
+            if total == 0:
+                return "n/a (0/0)"
+            return f"{covered / total * 100:.2f}% ({covered}/{total})"
+
+        # --- JaCoCo CSV ---
+        jacoco_csv = Path("target/site/jacoco/jacoco.csv")
+        instr_missed = instr_covered = 0
+        branch_missed = branch_covered = 0
+
+        if jacoco_csv.exists():
+            with jacoco_csv.open(newline="", encoding="utf-8") as f:
+                for row in csv.DictReader(f):
+                    instr_missed += int(row.get("INSTRUCTION_MISSED", 0) or 0)
+                    instr_covered += int(row.get("INSTRUCTION_COVERED", 0) or 0)
+                    branch_missed += int(row.get("BRANCH_MISSED", 0) or 0)
+                    branch_covered += int(row.get("BRANCH_COVERED", 0) or 0)
+            instr_text = format_pct(instr_covered, instr_missed)
+            branch_text = format_pct(branch_covered, branch_missed)
+        else:
+            instr_text = "n/a (нет jacoco.csv)"
+            branch_text = "n/a (нет jacoco.csv)"
+
+        # --- Surefire XML ---
+        tests = failures = errors = skipped = 0
+        test_time = 0.0
+
+        xml_reports = glob.glob("target/surefire-reports/TEST-*.xml")
+        for xml_path in xml_reports:
+            root = ET.parse(xml_path).getroot()
+            tests += int(root.attrib.get("tests", 0))
+            failures += int(root.attrib.get("failures", 0))
+            errors += int(root.attrib.get("errors", 0))
+            skipped += int(root.attrib.get("skipped", 0))
+            test_time += float(root.attrib.get("time", 0.0))
+
+        # Fallback на .txt, если XML почему-то нет
+        if not xml_reports:
+            for txt_path in glob.glob("target/surefire-reports/*.txt"):
+                text = Path(txt_path).read_text(encoding="utf-8", errors="ignore")
+                m = re.search(
+                    r"Tests run: (\d+), Failures: (\d+), Errors: (\d+), Skipped: (\d+)",
+                    text,
+                )
+                if m:
+                    t, f, e, s = map(int, m.groups())
+                    tests += t
+                    failures += f
+                    errors += e
+                    skipped += s
+                tm = re.search(r"Time elapsed: ([\d.]+) s", text)
+                if tm:
+                    test_time += float(tm.group(1))
+
+        passed = tests - failures - errors - skipped
+        failed = failures + errors
+
+        md = f"""### Сводка метрик качества
+
+| Метрика | Значение |
+|---|---|
+| Покрытие кода тестами (instructions) | {instr_text} |
+| Покрытие ветвлений | {branch_text} |
+| Тестов всего | {tests} |
+| Тестов пройдено | {passed} |
+| Тестов упало (failures + errors) | {failed} |
+| Тестов пропущено | {skipped} |
+| Время выполнения тестов | {test_time:.3f} s |
+
+"""
+        print(md)
+
+        summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary_path:
+            with open(summary_path, "a", encoding="utf-8") as f:
+                f.write(md)
+        PY
+
+    - name: Setup Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/configure-pages@v5
+
+    - name: Prepare JaCoCo report for GitHub Pages
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        mkdir -p target/site/jacoco
+        touch target/site/jacoco/.nojekyll
+
+    - name: Upload Pages artifact
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: target/site/jacoco
+
+  deploy-pages:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
