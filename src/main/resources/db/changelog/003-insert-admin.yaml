@@ -11,7 +11,7 @@ databaseChangeLog:
                   value: admin
               - column:
                   name: password_hash
-                  value: "$2a$12$0EgBgMgHljkFFGuJpZX1z.Lxy4IYJqa1dy/UqMZrwa1a349yS0xja"
+                  value: "$2a$12$f0HknaJ1BVPWsW2IUt1me.FBA2mEUKXFuIPsCcJCF8Y8wzesmD0uO"
               - column:
                   name: full_name
                   value: Администратор Системы

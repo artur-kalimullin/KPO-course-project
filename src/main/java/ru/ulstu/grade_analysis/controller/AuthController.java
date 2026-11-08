@@ -1,5 +1,6 @@
 package ru.ulstu.grade_analysis.controller;
 
+import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.ulstu.grade_analysis.dto.LoginRequest;
+import ru.ulstu.grade_analysis.dto.LoginResponse;
 import ru.ulstu.grade_analysis.security.JwtService;
 
 @RestController
@@ -25,24 +28,20 @@ public class AuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
-    String username = request.get("username");
-    String password = request.get("password");
-
+  public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest request) {
     Authentication authentication =
         authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(username, password));
+            new UsernamePasswordAuthenticationToken(request.username(), request.password()));
 
     UserDetails userDetails = (UserDetails) authentication.getPrincipal();
     String token = jwtService.generateToken(userDetails);
+    String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
-    return ResponseEntity.ok(
-        Map.of(
-            "token", token, "role", userDetails.getAuthorities().iterator().next().getAuthority()));
+    return ResponseEntity.ok(new LoginResponse(token, role));
   }
 
   @PostMapping("/logout")
   public ResponseEntity<?> logout() {
-    return ResponseEntity.ok(Map.of("message", "Выход выполнен. Удалите токен на клиенте."));
+    return ResponseEntity.ok(Map.of("message", "Выход выполнен."));
   }
 }
