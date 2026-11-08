@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../shared/auth";
 
-export const LogoutButton = ({ variant = "btn-outline-danger", className = "" }) => {
+export const LogoutButton = ({ variant = "btn-danger", className = "" }) => {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
@@ -15,7 +15,7 @@ export const LogoutButton = ({ variant = "btn-outline-danger", className = "" })
 
     return (
         <>
-            <button className={`btn btn-sm ${variant} ${className}`} onClick={() => setShowModal(true)}>
+            <button className={`btn btn-sm ${variant} ${className} shadow-sm`} onClick={() => setShowModal(true)}>
                 <i className="bi bi-box-arrow-right me-1"></i> Выйти
             </button>
 
@@ -34,7 +34,7 @@ export const LogoutButton = ({ variant = "btn-outline-danger", className = "" })
                                 <button type="button" className="btn btn-secondary" onClick={() => setShowModal(false)}>
                                     Отмена
                                 </button>
-                                <button type="button" className="btn btn-danger" onClick={handleLogout}>
+                                <button type="button" className="btn btn-danger fw-bold" onClick={handleLogout}>
                                     Выйти
                                 </button>
                             </div>
