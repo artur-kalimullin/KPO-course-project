@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -31,10 +30,6 @@ public class Group {
 
   @Column(nullable = false, unique = true)
   private String name;
-
-  @ManyToOne
-  @JoinColumn(name = "curator_id")
-  private User curator;
 
   @ManyToMany
   @JoinTable(

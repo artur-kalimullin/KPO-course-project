@@ -5,6 +5,7 @@ import { Footer } from "../widgets/footer";
 import { MainPage } from "../pages/main-page";
 import { LoginPage } from "../pages/login-page";
 import { AdminDashboard } from "../pages/admin-dashboard";
+import { AdminGroupsPage } from "../pages/admin-groups";
 
 const GroupsPage = () => <div className="text-white text-center mt-5"><h2>Группы (в разработке)</h2></div>;
 const SubjectsPage = () => <div className="text-white text-center mt-5"><h2>Предметы (в разработке)</h2></div>;
@@ -35,7 +36,7 @@ export const App = () => {
                             } />
                             <Route path="/admin/groups" element={
                                 <ProtectedRoute allowedRole="ROLE_ADMIN">
-                                    <GroupsPage />
+                                    <AdminGroupsPage />
                                 </ProtectedRoute>
                             } />
                             <Route path="/admin/subjects" element={

@@ -67,13 +67,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     unique: true
-              - column:
-                  name: curator_id
-                  type: BIGINT
-                  constraints:
-                    foreignKeyName: fk_group_curator
-                    references: users(id)
-                    nullable: true
 
         - createTable:
             tableName: subjects
