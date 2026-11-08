@@ -41,3 +41,7 @@ yarn-error.log
 .env
 .env.local
 .env.*.local
+
+# Frontend
+front/node_modules/
+front/dist/

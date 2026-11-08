@@ -1,5 +1,33 @@
+# Git
+.git
+.gitignore
+.github
+
+# Maven
 target/
-.git/
-.github/
+.mvn/
+mvnw
+mvnw.cmd
+
+# Node / Frontend
+front/node_modules
+front/dist
+front/.vite
+
+# IDE
 .idea/
 *.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS / Env
+.env
+.env.local
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore

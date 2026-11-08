@@ -38,7 +38,16 @@ public class SecurityConfig {
         .authorizeHttpRequests(
             auth ->
                 auth.requestMatchers(
-                        "/api/auth/**", "/login.html", "/index.html", "/", "/css/**", "/js/**")
+                        "/api/auth/**",
+                        "/",
+                        "/login",
+                        "/index.html",
+                        "/assets/**",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/favicon.ico",
+                        "/favicon.svg")
                     .permitAll()
                     .requestMatchers("/api/admin/**")
                     .hasRole("ADMIN")
