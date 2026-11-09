@@ -13,8 +13,14 @@ databaseChangeLog:
                   name: password_hash
                   value: "$2a$12$f0HknaJ1BVPWsW2IUt1me.FBA2mEUKXFuIPsCcJCF8Y8wzesmD0uO"
               - column:
-                  name: full_name
-                  value: Администратор Системы
+                  name: last_name
+                  value: Администратор
+              - column:
+                  name: first_name
+                  value: Системы
+              - column:
+                  name: middle_name
+                  value: ""
               - column:
                   name: role_id
                   value: 1

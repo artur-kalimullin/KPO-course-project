@@ -7,8 +7,7 @@ import { LoginPage } from "../pages/login-page";
 import { AdminDashboard } from "../pages/admin-dashboard";
 import { AdminGroupsPage } from "../pages/admin-groups";
 import { AdminSubjectsPage } from "../pages/admin-subjects";
-
-const UsersPage = () => <div className="text-white text-center mt-5"><h2>Пользователи (в разработке)</h2></div>;
+import { AdminUsersPage } from "../pages/admin-users";
 
 const ProtectedRoute = ({ children, allowedRole }) => {
     const { user } = useAuth();
@@ -45,7 +44,7 @@ export const App = () => {
                             } />
                             <Route path="/admin/users" element={
                                 <ProtectedRoute allowedRole="ROLE_ADMIN">
-                                    <UsersPage />
+                                    <AdminUsersPage />
                                 </ProtectedRoute>
                             } />
 

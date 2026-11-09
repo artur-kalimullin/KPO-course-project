@@ -30,7 +30,7 @@ databaseChangeLog:
                     primaryKey: true
               - column:
                   name: username
-                  type: VARCHAR(100)
+                  type: VARCHAR(40)
                   constraints:
                     nullable: false
                     unique: true
@@ -40,10 +40,20 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: full_name
-                  type: VARCHAR(200)
+                  name: last_name
+                  type: VARCHAR(60)
                   constraints:
                     nullable: false
+              - column:
+                  name: first_name
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: middle_name
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: true
               - column:
                   name: role_id
                   type: BIGINT
@@ -51,6 +61,27 @@ databaseChangeLog:
                     nullable: false
                     foreignKeyName: fk_user_role
                     references: roles(id)
+              - column:
+                  name: course
+                  type: VARCHAR(1)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: record_book_number
+                  type: VARCHAR(6)
+                  constraints:
+                    nullable: true
+                    unique: true
+              - column:
+                  name: education_form
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: education_level
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
 
         - createTable:
             tableName: groups
