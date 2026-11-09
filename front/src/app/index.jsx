@@ -6,9 +6,8 @@ import { MainPage } from "../pages/main-page";
 import { LoginPage } from "../pages/login-page";
 import { AdminDashboard } from "../pages/admin-dashboard";
 import { AdminGroupsPage } from "../pages/admin-groups";
+import { AdminSubjectsPage } from "../pages/admin-subjects";
 
-const GroupsPage = () => <div className="text-white text-center mt-5"><h2>Группы (в разработке)</h2></div>;
-const SubjectsPage = () => <div className="text-white text-center mt-5"><h2>Предметы (в разработке)</h2></div>;
 const UsersPage = () => <div className="text-white text-center mt-5"><h2>Пользователи (в разработке)</h2></div>;
 
 const ProtectedRoute = ({ children, allowedRole }) => {
@@ -41,7 +40,7 @@ export const App = () => {
                             } />
                             <Route path="/admin/subjects" element={
                                 <ProtectedRoute allowedRole="ROLE_ADMIN">
-                                    <SubjectsPage />
+                                    <AdminSubjectsPage />
                                 </ProtectedRoute>
                             } />
                             <Route path="/admin/users" element={

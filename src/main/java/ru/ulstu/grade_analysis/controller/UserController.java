@@ -26,5 +26,12 @@ public class UserController {
         .collect(Collectors.toList());
   }
 
+  @GetMapping("/teachers")
+  public List<UserResponse> getAllTeachers() {
+    return userRepository.findByRoleName("TEACHER").stream()
+        .map(u -> new UserResponse(u.getId(), u.getFullName()))
+        .collect(Collectors.toList());
+  }
+
   public record UserResponse(Long id, String fullName) {}
 }
