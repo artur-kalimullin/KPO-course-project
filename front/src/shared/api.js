@@ -30,5 +30,6 @@ export const apiFetch = async (endpoint, options = {}) => {
         throw new Error(errorData.message || "Ошибка запроса");
     }
 
-    return response.json();
+    const text = await response.text();
+    return text ? JSON.parse(text) : null;
 };

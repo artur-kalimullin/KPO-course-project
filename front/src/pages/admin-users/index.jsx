@@ -39,9 +39,9 @@ export const AdminUsersPage = () => {
                 apiFetch("/admin/users/teachers"),
                 apiFetch("/admin/groups")
             ]);
-            setStudents(studentsData);
-            setTeachers(teachersData);
-            setGroups(groupsData);
+            setStudents(studentsData || []);
+            setTeachers(teachersData || []);
+            setGroups(groupsData?.content || []); 
         } catch (err) {
             setError("Ошибка загрузки данных");
         } finally {
@@ -91,18 +91,19 @@ export const AdminUsersPage = () => {
             setShowDeleteModal(false);
             loadData();
         } catch (err) {
-            alert("Ошибка удаления: " + err.message);
+            setError("Ошибка удаления: " + err.message);
+            setShowDeleteModal(false);
         }
     };
 
-        const openEditStudent = (student) => {
+    const openEditStudent = (student) => {
         setEditingStudentId(student.id);
         const groupId = student.groupIds && student.groupIds.length > 0 ? student.groupIds[0] : "";
         
         setStudentData({
-            lastName: student.fullName.split(" ")[0] || "",
-            firstName: student.fullName.split(" ")[1] || "",
-            middleName: student.fullName.split(" ")[2] || "",
+            lastName: student.fullName?.split(" ")[0] || "",
+            firstName: student.fullName?.split(" ")[1] || "",
+            middleName: student.fullName?.split(" ")[2] || "",
             username: student.username,
             password: "", 
             course: student.course || "1",
@@ -115,12 +116,12 @@ export const AdminUsersPage = () => {
         setShowStudentModal(true);
     };
 
-        const openEditTeacher = (teacher) => {
+    const openEditTeacher = (teacher) => {
         setEditingTeacherId(teacher.id);
         setTeacherData({
-            lastName: teacher.fullName.split(" ")[0] || "",
-            firstName: teacher.fullName.split(" ")[1] || "",
-            middleName: teacher.fullName.split(" ")[2] || "",
+            lastName: teacher.fullName?.split(" ")[0] || "",
+            firstName: teacher.fullName?.split(" ")[1] || "",
+            middleName: teacher.fullName?.split(" ")[2] || "",
             username: teacher.username,
             password: "",
             groupIds: teacher.groupIds || [] 
@@ -173,7 +174,7 @@ export const AdminUsersPage = () => {
                                     <th>Курс</th>
                                     <th>Зачетка</th>
                                     <th>Группа</th>
-                                    <th>Форма / Уровень</th>
+                                    <th>Форма обучения / Уровень образования </th>
                                     <th className="text-end">Действия</th>
                                 </tr>
                             </thead>
@@ -266,7 +267,7 @@ export const AdminUsersPage = () => {
                                 <Form.Label>Группа</Form.Label>
                                 <Form.Select required value={studentData.groupId} onChange={e => setStudentData({...studentData, groupId: Number(e.target.value)})}>
                                     <option value="">Выберите</option>
-                                    {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                                    {groups.map(g => <option key={g.id} value={g.id}>{g.fullName}</option>)}
                                 </Form.Select>
                             </Col>
 
@@ -312,7 +313,7 @@ export const AdminUsersPage = () => {
                                 <div className="border border-secondary rounded p-3" style={{ maxHeight: "150px", overflowY: "auto" }}>
                                     {groups.map(g => (
                                         <Form.Check 
-                                            key={g.id} type="checkbox" id={`group-${g.id}`} label={g.name}
+                                            key={g.id} type="checkbox" id={`group-${g.id}`} label={g.fullName}
                                             checked={teacherData.groupIds.includes(g.id)} onChange={() => toggleTeacherGroup(g.id)}
                                             className="text-white mb-1"
                                         />

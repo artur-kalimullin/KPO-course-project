@@ -220,14 +220,14 @@ public class UserController {
       user.getStudentGroups()
           .forEach(
               g -> {
-                groupNames.add(g.getName());
+                groupNames.add(g.getFullName());
                 groupIds.add(g.getId());
               });
     } else if (user.getRole().getName().equals("TEACHER")) {
       user.getTeacherGroups()
           .forEach(
               g -> {
-                groupNames.add(g.getName());
+                groupNames.add(g.getFullName());
                 groupIds.add(g.getId());
               });
     }

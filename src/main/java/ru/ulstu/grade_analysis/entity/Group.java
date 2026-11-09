@@ -2,6 +2,8 @@ package ru.ulstu.grade_analysis.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -24,12 +26,27 @@ import lombok.Setter;
 @AllArgsConstructor
 public class Group {
 
+  public enum EducationLevel {
+    BACHELOR,
+    MASTER
+  }
+
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false, unique = true)
-  private String name;
+  @Column(nullable = false, length = 20)
+  private String prefix;
+
+  @Column(nullable = false, length = 1)
+  private String course;
+
+  @Column(nullable = false, length = 1)
+  private String subgroup;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "education_level", nullable = false)
+  private EducationLevel educationLevel;
 
   @ManyToMany
   @JoinTable(
@@ -44,4 +61,8 @@ public class Group {
       joinColumns = @JoinColumn(name = "group_id"),
       inverseJoinColumns = @JoinColumn(name = "teacher_id"))
   private Set<User> teachers = new HashSet<>();
+
+  public String getFullName() {
+    return prefix + "-" + course + subgroup;
+  }
 }

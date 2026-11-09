@@ -93,11 +93,29 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: name
-                  type: VARCHAR(50)
+                  name: prefix
+                  type: VARCHAR(20)
                   constraints:
                     nullable: false
-                    unique: true
+              - column:
+                  name: course
+                  type: VARCHAR(1) 
+                  constraints:
+                    nullable: false
+              - column:
+                  name: subgroup
+                  type: VARCHAR(1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: education_level
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: groups
+            columnNames: prefix, course, subgroup
+            constraintName: uk_group_fullname
 
         - createTable:
             tableName: subjects

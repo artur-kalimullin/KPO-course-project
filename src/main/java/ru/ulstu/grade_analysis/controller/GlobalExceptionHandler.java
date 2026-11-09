@@ -25,6 +25,8 @@ public class GlobalExceptionHandler {
       userMessage = "Студент с таким номером зачетной книжки уже существует";
     } else if (msg.contains("username")) {
       userMessage = "Пользователь с таким логином уже существует";
+    } else if (msg.contains("uk_group_fullname") || msg.contains("groups_prefix_course_subgroup")) {
+      userMessage = "Группа с таким названием уже создана";
     }
 
     return ResponseEntity.badRequest().body(Map.of("message", userMessage));
