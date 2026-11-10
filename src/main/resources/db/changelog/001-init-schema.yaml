@@ -263,3 +263,7 @@ databaseChangeLog:
                   type: DATE
                   constraints:
                     nullable: false
+        - addUniqueConstraint:
+            tableName: grades
+            columnNames: student_id, subject_id, teacher_id
+            constraintName: uk_grade_student_subject_teacher

@@ -128,7 +128,7 @@ export const AdminGroupsPage = () => {
                         <thead>
                             <tr>
                                 <th style={{ width: "25%" }}>Название группы</th>
-                                <th style={{ width: "15%" }}>Уровень</th>
+                                <th style={{ width: "25%" }}>Уровень образования</th>
                                 <th style={{ width: "45%" }}>Студенты</th>
                                 <th className="text-end" style={{ width: "15%" }}>Действия</th>
                             </tr>
@@ -144,7 +144,7 @@ export const AdminGroupsPage = () => {
                                                 {g.students.map(s => s.fullName).join(", ")}
                                             </div>
                                         ) : (
-                                            <span className="text-muted">Нет студентов</span>
+                                            <span>Нет студентов</span>
                                         )}
                                     </td>
                                     <td className="text-end align-middle">
