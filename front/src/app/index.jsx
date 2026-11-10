@@ -11,6 +11,7 @@ import { AdminUsersPage } from "../pages/admin-users";
 import { TeacherDashboard } from "../pages/teacher-dashboard";
 import { TeacherStudentsPage } from "../pages/teacher-students";
 import { TeacherGradesPage } from "../pages/teacher-grades";
+import { TeacherStatsPage } from "../pages/teacher-stats";
 
 const ProtectedRoute = ({ children, allowedRole }) => {
     const { user } = useAuth();
@@ -65,7 +66,12 @@ export const App = () => {
                                 <ProtectedRoute allowedRole="ROLE_TEACHER">
                                     <TeacherGradesPage />
                                 </ProtectedRoute>
-                            } />                                                       
+                            } /> 
+                            <Route path="/teacher/group-stats" element={
+                                <ProtectedRoute allowedRole="ROLE_TEACHER">
+                                    <TeacherStatsPage />
+                                </ProtectedRoute>
+                            } />                                                      
 
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>
