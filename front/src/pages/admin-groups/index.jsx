@@ -1,6 +1,7 @@
+import { CustomPagination } from "../../widgets/pagination";
 import { useState, useEffect } from "react";
 import { apiFetch } from "../../shared/api";
-import { Modal, Button, Table, Form, Spinner, Alert, Pagination, Row, Col } from "react-bootstrap";
+import { Modal, Button, Table, Form, Spinner, Alert, Row, Col } from "react-bootstrap";
 
 export const AdminGroupsPage = () => {
     const [groups, setGroups] = useState([]);
@@ -122,18 +123,6 @@ export const AdminGroupsPage = () => {
         setSelectedStudentIds(prev => prev.includes(id) ? prev.filter(sId => sId !== id) : [...prev, id]);
     };
 
-    const renderPagination = () => {
-        let items = [];
-        for (let number = 1; number <= totalPages; number++) {
-            items.push(
-                <Pagination.Item key={number} active={number === page} onClick={() => setPage(number)}>
-                    {number}
-                </Pagination.Item>
-            );
-        }
-        return <Pagination className="justify-content-center mt-3">{items}</Pagination>;
-    };
-
     return (
         <div className="container py-4">
             <div className="d-flex justify-content-between align-items-center mb-4">
@@ -211,7 +200,13 @@ export const AdminGroupsPage = () => {
                 </div>
             )}
             
-            {!loading && renderPagination()}
+            {!loading && (
+                <CustomPagination 
+                    page={page} 
+                    totalPages={totalPages} 
+                    onPageChange={setPage} 
+                />
+            )}
 
             <Modal show={showGroupModal} onHide={() => setShowGroupModal(false)} centered contentClassName="bg-dark text-white">
                 <Modal.Header closeButton closeVariant="white">
@@ -240,7 +235,7 @@ export const AdminGroupsPage = () => {
                         </Row>
                         <Row>
                             <Col md={8} className="mb-3">
-                                <Form.Label>Префикс (например: ПИбд)</Form.Label>
+                                <Form.Label>Именование (например: ПИбд)</Form.Label>
                                 <Form.Control type="text" required value={currentGroup.prefix} onChange={(e) => setCurrentGroup({...currentGroup, prefix: e.target.value})} />
                             </Col>
                             <Col md={4} className="mb-3">

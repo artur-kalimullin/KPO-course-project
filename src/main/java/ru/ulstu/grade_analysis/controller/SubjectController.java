@@ -4,6 +4,9 @@ import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,12 +17,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.ulstu.grade_analysis.dto.SubjectRequest;
 import ru.ulstu.grade_analysis.dto.SubjectResponse;
+import ru.ulstu.grade_analysis.entity.Group;
 import ru.ulstu.grade_analysis.entity.Subject;
 import ru.ulstu.grade_analysis.entity.User;
+import ru.ulstu.grade_analysis.repository.GroupRepository;
 import ru.ulstu.grade_analysis.repository.SubjectRepository;
 import ru.ulstu.grade_analysis.repository.UserRepository;
 
@@ -30,17 +36,29 @@ public class SubjectController {
 
   private final SubjectRepository subjectRepository;
   private final UserRepository userRepository;
+  private final GroupRepository groupRepository;
 
-  public SubjectController(SubjectRepository subjectRepository, UserRepository userRepository) {
+  public SubjectController(
+      SubjectRepository subjectRepository,
+      UserRepository userRepository,
+      GroupRepository groupRepository) {
     this.subjectRepository = subjectRepository;
     this.userRepository = userRepository;
+    this.groupRepository = groupRepository;
   }
 
   @GetMapping
-  public List<SubjectResponse> getAllSubjects() {
-    return subjectRepository.findAll().stream()
-        .map(this::mapToResponse)
-        .collect(Collectors.toList());
+  public Page<SubjectResponse> getAllSubjects(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) Long teacherId,
+      @RequestParam(required = false) Long groupId) {
+
+    PageRequest pageRequest = PageRequest.of(page - 1, 16, Sort.by("name"));
+    return subjectRepository
+        .findFiltered(
+            (search != null && !search.isEmpty()) ? search : null, teacherId, groupId, pageRequest)
+        .map(this::mapToResponse);
   }
 
   @PostMapping
@@ -51,6 +69,7 @@ public class SubjectController {
     }
     Subject subject = new Subject();
     subject.setName(request.name());
+    updateRelations(subject, request);
     Subject saved = subjectRepository.save(subject);
     return ResponseEntity.ok(mapToResponse(saved));
   }
@@ -62,8 +81,14 @@ public class SubjectController {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Предмет с таким названием уже существует");
     }
-    Subject subject = subjectRepository.findById(id).orElseThrow();
+    Subject subject =
+        subjectRepository
+            .findById(id)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Предмет не найден"));
+
     subject.setName(request.name());
+    updateRelations(subject, request);
     Subject saved = subjectRepository.save(subject);
     return ResponseEntity.ok(mapToResponse(saved));
   }
@@ -74,15 +99,18 @@ public class SubjectController {
     return ResponseEntity.ok(Map.of("message", "Предмет удален"));
   }
 
-  @PostMapping("/{id}/teachers")
-  public ResponseEntity<SubjectResponse> assignTeachers(
-      @PathVariable Long id, @RequestBody List<Long> teacherIds) {
-    Subject subject = subjectRepository.findById(id).orElseThrow();
-    List<User> teachers = userRepository.findAllById(teacherIds);
+  private void updateRelations(Subject subject, SubjectRequest request) {
     subject.getTeachers().clear();
-    subject.getTeachers().addAll(teachers);
-    Subject saved = subjectRepository.save(subject);
-    return ResponseEntity.ok(mapToResponse(saved));
+    if (request.teacherIds() != null && !request.teacherIds().isEmpty()) {
+      List<User> teachers = userRepository.findAllById(request.teacherIds());
+      subject.getTeachers().addAll(teachers);
+    }
+
+    subject.getGroups().clear();
+    if (request.groupIds() != null && !request.groupIds().isEmpty()) {
+      List<Group> groups = groupRepository.findAllById(request.groupIds());
+      subject.getGroups().addAll(groups);
+    }
   }
 
   private SubjectResponse mapToResponse(Subject subject) {
@@ -90,6 +118,13 @@ public class SubjectController {
         subject.getTeachers().stream()
             .map(t -> new SubjectResponse.TeacherShortDto(t.getId(), t.getFullName()))
             .collect(Collectors.toList());
-    return new SubjectResponse(subject.getId(), subject.getName(), teacherDtos.size(), teacherDtos);
+
+    List<SubjectResponse.GroupShortDto> groupDtos =
+        subject.getGroups().stream()
+            .map(g -> new SubjectResponse.GroupShortDto(g.getId(), g.getFullName()))
+            .collect(Collectors.toList());
+
+    return new SubjectResponse(
+        subject.getId(), subject.getName(), teacherDtos.size(), teacherDtos, groupDtos);
   }
 }

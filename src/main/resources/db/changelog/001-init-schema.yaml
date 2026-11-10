@@ -131,7 +131,29 @@ databaseChangeLog:
                   type: VARCHAR(200)
                   constraints:
                     nullable: false
-        
+
+        - createTable:
+            tableName: subject_groups
+            columns:
+              - column:
+                  name: subject_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_sg_subject
+                    references: subjects(id)
+                    deleteCascade: true
+              - column:
+                  name: group_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_sg_group
+                    references: groups(id)
+                    deleteCascade: true 
+                           
         - createTable:
             tableName: teacher_subjects
             columns:
