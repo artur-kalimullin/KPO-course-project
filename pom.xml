@@ -12,7 +12,7 @@
     
     <groupId>ru.ulstu</groupId>
     <artifactId>grade-analysis</artifactId>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
     <name>grade-analysis</name>
     <description>Grade Analysis Course Project</description>
 
