@@ -17,8 +17,13 @@ export const LoginPage = () => {
 
         try {
             const role = await login(username, password);
+            
             if (role === "ROLE_ADMIN") {
                 navigate("/admin");
+            } else if (role === "ROLE_TEACHER") {
+                navigate("/teacher");
+            } else if (role === "ROLE_STUDENT") {
+                navigate("/student");
             } else {
                 navigate("/");
             }
