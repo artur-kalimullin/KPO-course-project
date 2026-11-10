@@ -8,6 +8,8 @@ import { AdminDashboard } from "../pages/admin-dashboard";
 import { AdminGroupsPage } from "../pages/admin-groups";
 import { AdminSubjectsPage } from "../pages/admin-subjects";
 import { AdminUsersPage } from "../pages/admin-users";
+import { TeacherDashboard } from "../pages/teacher-dashboard";
+import { TeacherStudentsPage } from "../pages/teacher-students";
 
 const ProtectedRoute = ({ children, allowedRole }) => {
     const { user } = useAuth();
@@ -47,6 +49,17 @@ export const App = () => {
                                     <AdminUsersPage />
                                 </ProtectedRoute>
                             } />
+
+                            <Route path="/teacher" element={
+                                <ProtectedRoute allowedRole="ROLE_TEACHER">
+                                    <TeacherDashboard />
+                                </ProtectedRoute>
+                            } />
+                            <Route path="/teacher/students" element={
+                                <ProtectedRoute allowedRole="ROLE_TEACHER">
+                                    <TeacherStudentsPage />
+                                </ProtectedRoute>
+                            } />                            
 
                             <Route path="*" element={<Navigate to="/" replace />} />
                         </Routes>

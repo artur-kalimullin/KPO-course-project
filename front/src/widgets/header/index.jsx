@@ -35,14 +35,19 @@ export const Header = () => {
                     <ul className="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
                         {user?.role === "ROLE_ADMIN" && (
                             <>
-                                <li className="nav-item"><NavLink to="/admin" className={navLinkClass} onClick={closeMenu} end>Дашборд</NavLink></li>
+                                <li className="nav-item"><NavLink to="/admin" className={navLinkClass} onClick={closeMenu} end>Панель администратора</NavLink></li>
                                 <li className="nav-item"><NavLink to="/admin/groups" className={navLinkClass} onClick={closeMenu}>Группы</NavLink></li>
                                 <li className="nav-item"><NavLink to="/admin/subjects" className={navLinkClass} onClick={closeMenu}>Предметы</NavLink></li>
                                 <li className="nav-item"><NavLink to="/admin/users" className={navLinkClass} onClick={closeMenu}>Пользователи</NavLink></li>
                             </>
                         )}
                         {user?.role === "ROLE_TEACHER" && (
-                            <li className="nav-item"><NavLink to="/teacher" className={navLinkClass} onClick={closeMenu}>Панель преподавателя</NavLink></li>
+                            <>
+                                <li className="nav-item"><NavLink to="/teacher" className={navLinkClass} onClick={closeMenu} end>Панель преподавателя</NavLink></li>
+                                <li className="nav-item"><NavLink to="/teacher/students" className={navLinkClass} onClick={closeMenu}>Списоки студентов</NavLink></li>
+                                <li className="nav-item"><NavLink to="/teacher/grades" className={navLinkClass} onClick={closeMenu}>Выставление оценок</NavLink></li>
+                                <li className="nav-item"><NavLink to="/teacher/group-stats" className={navLinkClass} onClick={closeMenu}>Статистика успеваемости</NavLink></li>
+                            </>
                         )}
                         {user?.role === "ROLE_STUDENT" && (
                             <li className="nav-item"><NavLink to="/student" className={navLinkClass} onClick={closeMenu}>Мои оценки</NavLink></li>

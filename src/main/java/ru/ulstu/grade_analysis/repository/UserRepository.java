@@ -35,4 +35,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
           + "AND (:groupId IS NULL OR g.id = :groupId)")
   Page<User> findFilteredTeachers(
       @Param("search") String search, @Param("groupId") Long groupId, Pageable pageable);
+
+  @Query(
+      "SELECT DISTINCT u FROM User u JOIN u.studentGroups g WHERE g.id = :groupId "
+          + "AND (:search IS NULL OR "
+          + "LOWER(CONCAT(u.lastName, ' ', u.firstName, ' ', COALESCE(u.middleName, ''))) "
+          + "LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')))")
+  Page<User> findStudentsInGroup(
+      @Param("groupId") Long groupId, @Param("search") String search, Pageable pageable);
 }
