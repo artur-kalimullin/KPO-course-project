@@ -3,7 +3,9 @@ package ru.ulstu.grade_analysis.controller;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import ru.ulstu.grade_analysis.dto.StudentCreateRequest;
@@ -49,22 +52,41 @@ public class UserController {
   }
 
   @GetMapping("/students")
-  public List<UserResponse> getAllStudents() {
-    return userRepository.findByRoleName("STUDENT").stream()
-        .map(this::mapToResponse)
-        .collect(Collectors.toList());
+  public Page<UserResponse> getAllStudents(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) String course,
+      @RequestParam(required = false) String level) {
+
+    PageRequest pageRequest = PageRequest.of(page - 1, 16, Sort.by("lastName", "firstName"));
+    return userRepository
+        .findFilteredStudents(
+            (search != null && !search.isEmpty()) ? search : null,
+            (course != null && !course.isEmpty()) ? course : null,
+            (level != null && !level.isEmpty()) ? level : null,
+            pageRequest)
+        .map(this::mapToResponse);
   }
 
   @GetMapping("/teachers")
-  public List<UserResponse> getAllTeachers() {
-    return userRepository.findByRoleName("TEACHER").stream()
-        .map(this::mapToResponse)
-        .collect(Collectors.toList());
+  public Page<UserResponse> getAllTeachers(
+      @RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) Long groupId) {
+
+    PageRequest pageRequest = PageRequest.of(page - 1, 16, Sort.by("lastName", "firstName"));
+    return userRepository
+        .findFilteredTeachers(
+            (search != null && !search.isEmpty()) ? search : null, groupId, pageRequest)
+        .map(this::mapToResponse);
   }
 
   @PostMapping("/students")
   @Transactional
   public ResponseEntity<?> createStudent(@RequestBody @Valid StudentCreateRequest request) {
+    if (request.password() == null || request.password().trim().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пароль не может быть пустым");
+    }
     if (userRepository.findByUsername(request.username()).isPresent()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Логин уже занят");
     }
@@ -83,7 +105,6 @@ public class UserController {
     student.setEducationForm(request.educationForm());
     student.setEducationLevel(request.educationLevel());
 
-    // ФИКС: Обновляем обе стороны связи
     student.getStudentGroups().add(group);
     group.getStudents().add(student);
 
@@ -136,6 +157,9 @@ public class UserController {
 
   @PostMapping("/teachers")
   public ResponseEntity<?> createTeacher(@RequestBody @Valid TeacherCreateRequest request) {
+    if (request.password() == null || request.password().trim().isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пароль не может быть пустым");
+    }
     if (userRepository.findByUsername(request.username()).isPresent()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Логин уже занят");
     }

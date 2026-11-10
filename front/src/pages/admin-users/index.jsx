@@ -1,14 +1,28 @@
 import { useState, useEffect } from "react";
 import { apiFetch } from "../../shared/api";
 import { Modal, Button, Table, Form, Spinner, Alert, Tabs, Tab, Row, Col } from "react-bootstrap";
+import { CustomPagination } from "../../widgets/pagination";
 
 export const AdminUsersPage = () => {
     const [activeTab, setActiveTab] = useState("students");
+
     const [students, setStudents] = useState([]);
     const [teachers, setTeachers] = useState([]);
-    const [groups, setGroups] = useState([]);
+    const [allGroups, setAllGroups] = useState([]);
+    
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    const [studentPage, setStudentPage] = useState(1);
+    const [studentTotalPages, setStudentTotalPages] = useState(0);
+    const [studentSearch, setStudentSearch] = useState("");
+    const [studentFilterCourse, setStudentFilterCourse] = useState("");
+    const [studentFilterLevel, setStudentFilterLevel] = useState("");
+
+    const [teacherPage, setTeacherPage] = useState(1);
+    const [teacherTotalPages, setTeacherTotalPages] = useState(0);
+    const [teacherSearch, setTeacherSearch] = useState("");
+    const [teacherFilterGroup, setTeacherFilterGroup] = useState("");
 
     const [showStudentModal, setShowStudentModal] = useState(false);
     const [showTeacherModal, setShowTeacherModal] = useState(false);
@@ -29,21 +43,57 @@ export const AdminUsersPage = () => {
         lastName: "", firstName: "", middleName: "", username: "", password: "", groupIds: [] 
     });
 
-    useEffect(() => { loadData(); }, []);
+    // Загружаем группы 1 раз при старте
+    useEffect(() => {
+        const loadGroups = async () => {
+            try {
+                const data = await apiFetch("/admin/groups?page=1");
+                setAllGroups(data?.content || []);
+            } catch (err) {
+                console.error("Ошибка загрузки групп", err);
+            }
+        };
+        loadGroups();
+    }, []);
 
-    const loadData = async () => {
+    useEffect(() => {
+        if (activeTab === "students") loadStudents();
+    }, [activeTab, studentPage, studentSearch, studentFilterCourse, studentFilterLevel]);
+
+    useEffect(() => {
+        if (activeTab === "teachers") loadTeachers();
+    }, [activeTab, teacherPage, teacherSearch, teacherFilterGroup]);
+
+    const loadStudents = async () => {
         try {
             setLoading(true);
-            const [studentsData, teachersData, groupsData] = await Promise.all([
-                apiFetch("/admin/users/students"),
-                apiFetch("/admin/users/teachers"),
-                apiFetch("/admin/groups")
-            ]);
-            setStudents(studentsData || []);
-            setTeachers(teachersData || []);
-            setGroups(groupsData?.content || []); 
+            let url = `/admin/users/students?page=${studentPage}`;
+            if (studentSearch) url += `&search=${encodeURIComponent(studentSearch)}`; 
+            if (studentFilterCourse) url += `&course=${studentFilterCourse}`;
+            if (studentFilterLevel) url += `&level=${studentFilterLevel}`;
+
+            const data = await apiFetch(url);
+            setStudents(data?.content || []);
+            setStudentTotalPages(data?.totalPages || 0);
         } catch (err) {
-            setError("Ошибка загрузки данных");
+            setError("Ошибка загрузки студентов");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const loadTeachers = async () => {
+        try {
+            setLoading(true);
+            let url = `/admin/users/teachers?page=${teacherPage}`;
+            if (teacherSearch) url += `&search=${encodeURIComponent(teacherSearch)}`;
+            if (teacherFilterGroup) url += `&groupId=${teacherFilterGroup}`;
+
+            const data = await apiFetch(url);
+            setTeachers(data?.content || []);
+            setTeacherTotalPages(data?.totalPages || 0);
+        } catch (err) {
+            setError("Ошибка загрузки преподавателей");
         } finally {
             setLoading(false);
         }
@@ -54,14 +104,12 @@ export const AdminUsersPage = () => {
         setModalError("");
         try {
             const url = editingStudentId ? `/admin/users/students/${editingStudentId}` : "/admin/users/students";
-            const method = editingStudentId ? "PUT" : "POST";
-            
             await apiFetch(url, {
-                method: method,
+                method: editingStudentId ? "PUT" : "POST",
                 body: JSON.stringify(studentData)
             });
             setShowStudentModal(false);
-            loadData();
+            loadStudents();
         } catch (err) {
             setModalError(err.message);
         }
@@ -72,14 +120,12 @@ export const AdminUsersPage = () => {
         setModalError("");
         try {
             const url = editingTeacherId ? `/admin/users/teachers/${editingTeacherId}` : "/admin/users/teachers";
-            const method = editingTeacherId ? "PUT" : "POST";
-
             await apiFetch(url, {
-                method: method,
+                method: editingTeacherId ? "PUT" : "POST",
                 body: JSON.stringify(teacherData)
             });
             setShowTeacherModal(false);
-            loadData();
+            loadTeachers();
         } catch (err) {
             setModalError(err.message);
         }
@@ -89,7 +135,7 @@ export const AdminUsersPage = () => {
         try {
             await apiFetch(`/admin/users/${userToDelete.id}`, { method: "DELETE" });
             setShowDeleteModal(false);
-            loadData();
+            activeTab === "students" ? loadStudents() : loadTeachers();
         } catch (err) {
             setError("Ошибка удаления: " + err.message);
             setShowDeleteModal(false);
@@ -130,20 +176,6 @@ export const AdminUsersPage = () => {
         setShowTeacherModal(true);
     };
 
-    const openCreateStudent = () => {
-        setEditingStudentId(null);
-        setStudentData({ lastName: "", firstName: "", middleName: "", username: "", password: "", course: "1", groupId: "", recordBookNumber: "", educationForm: "Очная", educationLevel: "Бакалавриат" });
-        setModalError("");
-        setShowStudentModal(true);
-    };
-
-    const openCreateTeacher = () => {
-        setEditingTeacherId(null);
-        setTeacherData({ lastName: "", firstName: "", middleName: "", username: "", password: "", groupIds: [] });
-        setModalError("");
-        setShowTeacherModal(true);
-    };
-
     const toggleTeacherGroup = (id) => {
         setTeacherData(prev => ({
             ...prev,
@@ -151,7 +183,13 @@ export const AdminUsersPage = () => {
         }));
     };
 
-    if (loading) return <div className="text-center mt-5"><Spinner animation="border" variant="warning" /></div>;
+    const availableGroupsForStudent = allGroups.filter(g => {
+        const backendLevel = studentData.educationLevel === "Бакалавриат" ? "BACHELOR" : "MASTER";
+        
+        if (studentData.educationLevel && g.educationLevel !== backendLevel) return false;
+        if (studentData.course && g.course !== studentData.course) return false;
+        return true;
+    });
 
     return (
         <div className="container py-4">
@@ -160,11 +198,39 @@ export const AdminUsersPage = () => {
 
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3 custom-tabs">
                 <Tab eventKey="students" title={<span><i className="bi bi-mortarboard me-2"></i>Студенты</span>}>
-                    <div className="d-flex justify-content-end mb-3">
-                        <Button variant="warning" className="fw-bold" onClick={openCreateStudent}>
+                                        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <Row className="g-2 flex-grow-1">
+                            <Col md={4}>
+                                <Form.Control 
+                                    placeholder="Поиск по ФИО..." 
+                                    value={studentSearch} 
+                                    onChange={e => { setStudentSearch(e.target.value); setStudentPage(1); }} 
+                                />
+                            </Col>
+                            <Col md={3}>
+                                <Form.Select value={studentFilterCourse} onChange={e => { setStudentFilterCourse(e.target.value); setStudentPage(1); }}>
+                                    <option value="">Все курсы</option>
+                                    {[1,2,3,4,5].map(c => <option key={c} value={c}>{c} курс</option>)}
+                                </Form.Select>
+                            </Col>
+                            <Col md={4}>
+                                <Form.Select value={studentFilterLevel} onChange={e => { setStudentFilterLevel(e.target.value); setStudentPage(1); }}>
+                                    <option value="">Все уровни образования</option>
+                                    <option value="Бакалавриат">Бакалавриат</option>
+                                    <option value="Магистратура">Магистратура</option>
+                                </Form.Select>
+                            </Col>
+                        </Row>
+                        <Button variant="warning" className="fw-bold" onClick={() => { 
+                            setEditingStudentId(null); 
+                            setStudentData({ lastName: "", firstName: "", middleName: "", username: "", password: "", course: "1", groupId: "", recordBookNumber: "", educationForm: "Очная", educationLevel: "Бакалавриат" }); 
+                            setModalError(""); 
+                            setShowStudentModal(true); 
+                        }}>
                             <i className="bi bi-plus-lg me-2"></i>Добавить студента
                         </Button>
                     </div>
+                    
                     <div className="card bg-dark bg-opacity-75 text-white shadow border-0">
                         <Table hover responsive variant="dark" className="mb-0">
                             <thead>
@@ -174,7 +240,7 @@ export const AdminUsersPage = () => {
                                     <th>Курс</th>
                                     <th>Зачетка</th>
                                     <th>Группа</th>
-                                    <th>Форма обучения / Уровень образования </th>
+                                    <th>Форма / Уровень</th>
                                     <th className="text-end">Действия</th>
                                 </tr>
                             </thead>
@@ -197,25 +263,48 @@ export const AdminUsersPage = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                {students.length === 0 && <tr><td colSpan="6" className="text-center py-3">Студентов нет</td></tr>}
+                                {students.length === 0 && <tr><td colSpan="7" className="text-center py-3">Студентов не найдено</td></tr>}
                             </tbody>
                         </Table>
                     </div>
+                    
+                    {!loading && <CustomPagination page={studentPage} totalPages={studentTotalPages} onPageChange={setStudentPage} />}
                 </Tab>
 
                 <Tab eventKey="teachers" title={<span><i className="bi bi-person-video3 me-2"></i>Преподаватели</span>}>
-                    <div className="d-flex justify-content-end mb-3">
-                        <Button variant="warning" className="fw-bold" onClick={openCreateTeacher}>
+                                        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                        <Row className="g-2 flex-grow-1">
+                            <Col md={6}>
+                                <Form.Control 
+                                    placeholder="Поиск по ФИО..." 
+                                    value={teacherSearch} 
+                                    onChange={e => { setTeacherSearch(e.target.value); setTeacherPage(1); }} 
+                                />
+                            </Col>
+                            <Col md={6}>
+                                <Form.Select value={teacherFilterGroup} onChange={e => { setTeacherFilterGroup(e.target.value); setTeacherPage(1); }}>
+                                    <option value="">Все группы</option>
+                                    {allGroups.map(g => <option key={g.id} value={g.id}>{g.fullName}</option>)}
+                                </Form.Select>
+                            </Col>
+                        </Row>
+                        <Button variant="warning" className="fw-bold" onClick={() => { 
+                            setEditingTeacherId(null); 
+                            setTeacherData({ lastName: "", firstName: "", middleName: "", username: "", password: "", groupIds: [] }); 
+                            setModalError(""); 
+                            setShowTeacherModal(true); 
+                        }}>
                             <i className="bi bi-plus-lg me-2"></i>Добавить преподавателя
                         </Button>
                     </div>
+
                     <div className="card bg-dark bg-opacity-75 text-white shadow border-0">
                         <Table hover responsive variant="dark" className="mb-0">
                             <thead>
                                 <tr>
                                     <th>ФИО</th>
                                     <th>Логин</th>
-                                    <th>Проводит занятия у групп</th>
+                                    <th>Ведет занятия у групп</th>
                                     <th className="text-end">Действия</th>
                                 </tr>
                             </thead>
@@ -224,8 +313,7 @@ export const AdminUsersPage = () => {
                                     <tr key={t.id}>
                                         <td>{t.fullName}</td>
                                         <td>{t.username}</td>
-                                        <td>{t.groupNames && t.groupNames.length > 0 ? t.groupNames.join(", ") : 
-                                            <span className="text-muted">Нет групп</span>}</td>
+                                        <td>{t.groupNames?.length > 0 ? t.groupNames.join(", ") : <span className="text-muted">Нет групп</span>}</td>
                                         <td className="text-end">
                                             <Button variant="outline-warning" size="sm" className="me-2" onClick={() => openEditTeacher(t)}>
                                                 <i className="bi bi-pencil"></i>
@@ -236,10 +324,12 @@ export const AdminUsersPage = () => {
                                         </td>
                                     </tr>
                                 ))}
-                                {teachers.length === 0 && <tr><td colSpan="3" className="text-center py-3">Преподавателей нет</td></tr>}
+                                {teachers.length === 0 && <tr><td colSpan="4" className="text-center py-3">Преподавателей не найдено</td></tr>}
                             </tbody>
                         </Table>
                     </div>
+
+                    {!loading && <CustomPagination page={teacherPage} totalPages={teacherTotalPages} onPageChange={setTeacherPage} />}
                 </Tab>
             </Tabs>
 
@@ -256,22 +346,27 @@ export const AdminUsersPage = () => {
                             <Col md={6} className="mb-3"><Form.Label>Логин (6-40 симв.)</Form.Label><Form.Control required minLength={6} maxLength={40} value={studentData.username} onChange={e => setStudentData({...studentData, username: e.target.value})} /></Col>
                             <Col md={6} className="mb-3"><Form.Label>Пароль {editingStudentId && "(оставьте пустым, чтобы не менять)"}</Form.Label><Form.Control type="password" required={!editingStudentId} minLength={6} maxLength={40} value={studentData.password} onChange={e => setStudentData({...studentData, password: e.target.value})} /></Col>
 
-                            <Col md={4} className="mb-3">
-                                <Form.Label>Курс</Form.Label>
-                                <Form.Select required value={studentData.course} onChange={e => setStudentData({...studentData, course: e.target.value})}>
-                                    {[1,2,3,4,5].map(c => <option key={c} value={c.toString()}>{c} курс</option>)}
+                            <Col md={6} className="mb-3">
+                                <Form.Label>Уровень образования</Form.Label>
+                                <Form.Select value={studentData.educationLevel} onChange={e => setStudentData({...studentData, educationLevel: e.target.value, course: "1", groupId: ""})}>
+                                    <option value="Бакалавриат">Бакалавриат</option>
+                                    <option value="Магистратура">Магистратура</option>
                                 </Form.Select>
                             </Col>
-                            <Col md={4} className="mb-3"><Form.Label>Зачетка (6 цифр)</Form.Label><Form.Control required pattern="\d{6}" maxLength={6} value={studentData.recordBookNumber} onChange={e => setStudentData({...studentData, recordBookNumber: e.target.value})} /></Col>
-                            <Col md={4} className="mb-3">
-                                <Form.Label>Группа</Form.Label>
-                                <Form.Select required value={studentData.groupId} onChange={e => setStudentData({...studentData, groupId: Number(e.target.value)})}>
-                                    <option value="">Выберите</option>
-                                    {groups.map(g => <option key={g.id} value={g.id}>{g.fullName}</option>)}
+                            <Col md={6} className="mb-3">
+                                <Form.Label>Курс</Form.Label>
+                                <Form.Select required value={studentData.course} onChange={e => setStudentData({...studentData, course: e.target.value, groupId: ""})}>
+                                    {[1,2,3,4,5].filter(c => studentData.educationLevel === "Магистратура" ? c <= 2 : true).map(c => (
+                                        <option key={c} value={c.toString()}>{c} курс</option>
+                                    ))}
                                 </Form.Select>
                             </Col>
 
-                            <Col md={6} className="mb-3">
+                            <Col md={4} className="mb-3">
+                                <Form.Label>Зачетка (6 цифр)</Form.Label>
+                                <Form.Control required pattern="\d{6}" maxLength={6} value={studentData.recordBookNumber} onChange={e => setStudentData({...studentData, recordBookNumber: e.target.value})} />
+                            </Col>
+                            <Col md={4} className="mb-3">
                                 <Form.Label>Форма обучения</Form.Label>
                                 <Form.Select value={studentData.educationForm} onChange={e => setStudentData({...studentData, educationForm: e.target.value})}>
                                     <option value="Очная">Очная</option>
@@ -279,12 +374,13 @@ export const AdminUsersPage = () => {
                                     <option value="Заочная">Заочная</option>
                                 </Form.Select>
                             </Col>
-                            <Col md={6} className="mb-3">
-                                <Form.Label>Уровень образования</Form.Label>
-                                <Form.Select value={studentData.educationLevel} onChange={e => setStudentData({...studentData, educationLevel: e.target.value})}>
-                                    <option value="Бакалавриат">Бакалавриат</option>
-                                    <option value="Магистратура">Магистратура</option>
+                            <Col md={4} className="mb-3">
+                                <Form.Label>Группа</Form.Label>
+                                <Form.Select required value={studentData.groupId} onChange={e => setStudentData({...studentData, groupId: Number(e.target.value)})}>
+                                    <option value="">Выберите</option>
+                                    {availableGroupsForStudent.map(g => <option key={g.id} value={g.id}>{g.fullName}</option>)}
                                 </Form.Select>
+                                {availableGroupsForStudent.length === 0 && <small className="text-danger">Нет подходящих групп</small>}
                             </Col>
                         </Row>
                     </Modal.Body>
@@ -311,14 +407,14 @@ export const AdminUsersPage = () => {
                             <Col md={12} className="mb-3">
                                 <Form.Label>Группы, в которых ведет занятия</Form.Label>
                                 <div className="border border-secondary rounded p-3" style={{ maxHeight: "150px", overflowY: "auto" }}>
-                                    {groups.map(g => (
+                                    {allGroups.map(g => (
                                         <Form.Check 
                                             key={g.id} type="checkbox" id={`group-${g.id}`} label={g.fullName}
                                             checked={teacherData.groupIds.includes(g.id)} onChange={() => toggleTeacherGroup(g.id)}
                                             className="text-white mb-1"
                                         />
                                     ))}
-                                    {groups.length === 0 && <p className="text-muted mb-0">Сначала создайте группы.</p>}
+                                    {allGroups.length === 0 && <p className="text-muted mb-0">Сначала создайте группы.</p>}
                                 </div>
                             </Col>
                         </Row>

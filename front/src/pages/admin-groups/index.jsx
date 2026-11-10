@@ -36,8 +36,8 @@ export const AdminGroupsPage = () => {
 
     const loadStudents = async () => {
         try {
-            const data = await apiFetch("/admin/users/students");
-            setStudents(data || []);
+            const data = await apiFetch("/admin/users/students?page=1");
+            setStudents(data?.content || []);
         } catch (err) {
             console.error("Ошибка загрузки студентов", err);
         }
@@ -49,7 +49,7 @@ export const AdminGroupsPage = () => {
             let url = `/admin/groups?page=${page}`;
             if (filterCourse) url += `&course=${filterCourse}`;
             if (filterLevel) url += `&level=${filterLevel}`;
-            if (searchQuery) url += `&search=${searchQuery}`;
+            if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
 
             const data = await apiFetch(url);
             setGroups(data?.content || []); // Защита от null

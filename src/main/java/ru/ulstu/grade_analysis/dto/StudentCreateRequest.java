@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 public record StudentCreateRequest(
     @NotBlank @Size(min = 6, max = 40) String username,
-    @NotBlank @Size(min = 6, max = 40) String password,
+    String password,
     @NotBlank @Size(max = 60) String firstName,
     @NotBlank @Size(max = 60) String lastName,
     @Size(max = 60) String middleName,

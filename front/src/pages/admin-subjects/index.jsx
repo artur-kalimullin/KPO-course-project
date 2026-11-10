@@ -36,10 +36,10 @@ export const AdminSubjectsPage = () => {
     const loadDictionaries = async () => {
         try {
             const [teachersData, groupsData] = await Promise.all([
-                apiFetch("/admin/users/teachers"),
+                apiFetch("/admin/users/teachers?page=1"),
                 apiFetch("/admin/groups?page=1") 
             ]);
-            setTeachers(teachersData || []);
+            setTeachers(teachersData?.content || []);
             setGroups(groupsData?.content || []);
         } catch (err) {
             console.error("Ошибка загрузки справочников", err);
@@ -50,7 +50,7 @@ export const AdminSubjectsPage = () => {
         try {
             setLoading(true);
             let url = `/admin/subjects?page=${page}`;
-            if (searchQuery) url += `&search=${searchQuery}`;
+            if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
             if (filterTeacherId) url += `&teacherId=${filterTeacherId}`;
             if (filterGroupId) url += `&groupId=${filterGroupId}`;
 
