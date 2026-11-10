@@ -30,3 +30,7 @@ logging:
 jwt:
   secret: "verySecretKeyForJWTTokenGenerationMustBeLongEnough12345666"
   expiration: 86400000
+
+server:
+  error:
+    include-message: always

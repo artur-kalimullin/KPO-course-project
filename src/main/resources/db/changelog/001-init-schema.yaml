@@ -30,7 +30,7 @@ databaseChangeLog:
                     primaryKey: true
               - column:
                   name: username
-                  type: VARCHAR(100)
+                  type: VARCHAR(40)
                   constraints:
                     nullable: false
                     unique: true
@@ -40,10 +40,20 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: full_name
-                  type: VARCHAR(200)
+                  name: last_name
+                  type: VARCHAR(60)
                   constraints:
                     nullable: false
+              - column:
+                  name: first_name
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: middle_name
+                  type: VARCHAR(60)
+                  constraints:
+                    nullable: true
               - column:
                   name: role_id
                   type: BIGINT
@@ -51,6 +61,27 @@ databaseChangeLog:
                     nullable: false
                     foreignKeyName: fk_user_role
                     references: roles(id)
+              - column:
+                  name: course
+                  type: VARCHAR(1)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: record_book_number
+                  type: VARCHAR(6)
+                  constraints:
+                    nullable: true
+                    unique: true
+              - column:
+                  name: education_form
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: education_level
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: true
 
         - createTable:
             tableName: groups
@@ -62,18 +93,29 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
               - column:
-                  name: name
-                  type: VARCHAR(50)
+                  name: prefix
+                  type: VARCHAR(20)
                   constraints:
                     nullable: false
-                    unique: true
               - column:
-                  name: curator_id
-                  type: BIGINT
+                  name: course
+                  type: VARCHAR(1) 
                   constraints:
-                    foreignKeyName: fk_group_curator
-                    references: users(id)
-                    nullable: true
+                    nullable: false
+              - column:
+                  name: subgroup
+                  type: VARCHAR(1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: education_level
+                  type: VARCHAR(20)
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: groups
+            columnNames: prefix, course, subgroup
+            constraintName: uk_group_fullname
 
         - createTable:
             tableName: subjects
@@ -89,6 +131,50 @@ databaseChangeLog:
                   type: VARCHAR(200)
                   constraints:
                     nullable: false
+
+        - createTable:
+            tableName: subject_groups
+            columns:
+              - column:
+                  name: subject_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_sg_subject
+                    references: subjects(id)
+                    deleteCascade: true
+              - column:
+                  name: group_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_sg_group
+                    references: groups(id)
+                    deleteCascade: true 
+                           
+        - createTable:
+            tableName: teacher_subjects
+            columns:
+              - column:
+                  name: teacher_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_ts_teacher
+                    references: users(id)
+                    deleteCascade: true
+              - column:
+                  name: subject_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    foreignKeyName: fk_ts_subject
+                    references: subjects(id)
+                    deleteCascade: true
 
         - createTable:
             tableName: student_groups

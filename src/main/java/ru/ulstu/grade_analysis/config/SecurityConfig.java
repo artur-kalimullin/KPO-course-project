@@ -41,6 +41,8 @@ public class SecurityConfig {
                         "/api/auth/**",
                         "/",
                         "/login",
+                        "/admin",
+                        "/admin/**",
                         "/index.html",
                         "/assets/**",
                         "/css/**",
