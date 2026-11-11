@@ -40,7 +40,7 @@ public class AuthController {
       String token = jwtService.generateToken(userDetails);
       String role = userDetails.getAuthorities().iterator().next().getAuthority();
 
-      return ResponseEntity.ok(new LoginResponse(token, role));
+      return ResponseEntity.ok(new LoginResponse(token, role, userDetails.getUsername()));
 
     } catch (AuthenticationException e) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
