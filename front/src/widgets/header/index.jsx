@@ -50,7 +50,11 @@ export const Header = () => {
                             </>
                         )}
                         {user?.role === "ROLE_STUDENT" && (
-                            <li className="nav-item"><NavLink to="/student" className={navLinkClass} onClick={closeMenu}>Мои оценки</NavLink></li>
+                            <>
+                                <li className="nav-item"><NavLink to="/student" className={navLinkClass} onClick={closeMenu} end>Панель студента</NavLink></li>
+                                <li className="nav-item"><NavLink to="/student/grades" className={navLinkClass} onClick={closeMenu}>Мои оценки</NavLink></li>
+                                <li className="nav-item"><NavLink to="/student/rating" className={navLinkClass} onClick={closeMenu}>Рейтинг в группе</NavLink></li>
+                            </>
                         )}
                     </ul>
 
@@ -59,7 +63,7 @@ export const Header = () => {
                             <>
                                 <span className="text-light opacity-75 d-none d-lg-block">
                                     <i className="bi bi-person-circle me-1"></i>
-                                    {user.role === "ROLE_ADMIN" ? "Администратор" : user.role === "ROLE_TEACHER" ? "Преподаватель" : "Студент"}
+                                    {user.username || (user.role === "ROLE_ADMIN" ? "Администратор" : user.role === "ROLE_TEACHER" ? "Преподаватель" : "Студент")}
                                 </span>
                                 <LogoutButton className="px-3 fw-bold" />
                             </>
