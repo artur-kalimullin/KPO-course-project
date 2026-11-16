@@ -52,6 +52,7 @@ public class UserController {
   }
 
   @GetMapping("/students")
+  @Transactional(readOnly = true)
   public Page<UserResponse> getAllStudents(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(required = false) String search,
@@ -69,6 +70,7 @@ public class UserController {
   }
 
   @GetMapping("/teachers")
+  @Transactional(readOnly = true)
   public Page<UserResponse> getAllTeachers(
       @RequestParam(defaultValue = "1") int page,
       @RequestParam(required = false) String search,
@@ -156,6 +158,7 @@ public class UserController {
   }
 
   @PostMapping("/teachers")
+  @Transactional
   public ResponseEntity<?> createTeacher(@RequestBody @Valid TeacherCreateRequest request) {
     if (request.password() == null || request.password().trim().isEmpty()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пароль не может быть пустым");

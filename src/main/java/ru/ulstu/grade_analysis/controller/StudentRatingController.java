@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,6 +30,7 @@ public class StudentRatingController {
   }
 
   @GetMapping
+  @Transactional(readOnly = true)
   public Map<String, Object> getGroupRating(Authentication authentication) {
     User currentStudent = userRepository.findByUsername(authentication.getName()).orElseThrow();
 
@@ -85,16 +87,18 @@ public class StudentRatingController {
     long studentsWithDebts = ranking.stream().filter(r -> (Boolean) r.get("hasDebts")).count();
     long studentsWithoutDebts = ranking.size() - studentsWithDebts;
 
+    Object myAverage =
+        ranking.stream()
+            .filter(r -> r.get("id").equals(currentStudent.getId()))
+            .findFirst()
+            .map(r -> r.get("average"))
+            .orElse(0.0);
+
     return Map.of(
         "groupName", group.getFullName(),
         "top3", top3,
         "myPlace", myPlace,
-        "myAverage",
-            ranking.stream()
-                .filter(r -> r.get("id").equals(currentStudent.getId()))
-                .findFirst()
-                .get()
-                .get("average"),
+        "myAverage", myAverage,
         "totalStudents", ranking.size(),
         "studentsWithDebts", studentsWithDebts,
         "studentsWithoutDebts", studentsWithoutDebts);

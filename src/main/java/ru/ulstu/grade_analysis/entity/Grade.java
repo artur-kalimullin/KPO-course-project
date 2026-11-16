@@ -38,7 +38,7 @@ public class Grade {
   @JoinColumn(name = "teacher_id", nullable = false)
   private User teacher;
 
-  @Column(nullable = false)
+  @Column(name = "grade_value", nullable = false)
   private Integer value;
 
   @Column(name = "grade_date", nullable = false)

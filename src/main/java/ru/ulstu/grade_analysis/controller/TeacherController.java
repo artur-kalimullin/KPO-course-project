@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +40,7 @@ public class TeacherController {
   }
 
   @GetMapping("/my-groups")
+  @Transactional(readOnly = true)
   public List<GroupResponse> getMyGroups(Authentication authentication) {
     User teacher = userRepository.findByUsername(authentication.getName()).orElseThrow();
     return teacher.getTeacherGroups().stream()
@@ -57,6 +59,7 @@ public class TeacherController {
   }
 
   @GetMapping("/groups/{groupId}/subjects")
+  @Transactional(readOnly = true)
   public List<Map<String, Object>> getSubjectsByGroup(
       @PathVariable Long groupId, Authentication authentication) {
     User teacher = userRepository.findByUsername(authentication.getName()).orElseThrow();
@@ -72,6 +75,7 @@ public class TeacherController {
   }
 
   @GetMapping("/groups/{groupId}/students")
+  @Transactional(readOnly = true)
   public Page<StudentResponse> getStudentsByGroup(
       @PathVariable Long groupId,
       @RequestParam(defaultValue = "1") int page,

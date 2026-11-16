@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -47,6 +48,7 @@ public class TeacherGradeController {
   }
 
   @GetMapping("/my-subjects")
+  @Transactional(readOnly = true)
   public List<Map<String, Object>> getMySubjects(Authentication authentication) {
     User teacher = userRepository.findByUsername(authentication.getName()).orElseThrow();
     return subjectRepository.findAll().stream()
@@ -76,6 +78,7 @@ public class TeacherGradeController {
   }
 
   @GetMapping("/subject/{subjectId}/details")
+  @Transactional(readOnly = true)
   public Map<String, Object> getSubjectDetails(
       @PathVariable Long subjectId, Authentication authentication) {
     User teacher = userRepository.findByUsername(authentication.getName()).orElseThrow();
