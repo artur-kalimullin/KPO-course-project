@@ -2,7 +2,10 @@ package ru.ulstu.grade_analysis.controller;
 
 import java.util.Map;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.server.ResponseStatusException;
@@ -30,5 +33,28 @@ public class GlobalExceptionHandler {
     }
 
     return ResponseEntity.badRequest().body(Map.of("message", userMessage));
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<?> handleValidationException(MethodArgumentNotValidException ex) {
+    String message =
+        ex.getBindingResult().getFieldErrors().stream()
+            .findFirst()
+            .map(
+                err ->
+                    err.getDefaultMessage() != null ? err.getDefaultMessage() : "Ошибка валидации")
+            .orElse("Ошибка валидации");
+    return ResponseEntity.badRequest().body(Map.of("message", message));
+  }
+
+  @ExceptionHandler(HttpMessageNotReadableException.class)
+  public ResponseEntity<?> handleNotReadable(HttpMessageNotReadableException ex) {
+    return ResponseEntity.badRequest().body(Map.of("message", "Некорректный JSON"));
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<?> handleGenericException(Exception ex) {
+    String message = ex.getMessage() != null ? ex.getMessage() : "Внутренняя ошибка сервера";
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", message));
   }
 }

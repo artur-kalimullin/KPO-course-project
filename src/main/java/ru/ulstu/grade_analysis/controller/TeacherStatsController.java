@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -44,6 +45,7 @@ public class TeacherStatsController {
   }
 
   @GetMapping
+  @Transactional(readOnly = true)
   public Map<String, Object> getStats(
       @RequestParam Long groupId, @RequestParam Long subjectId, Authentication authentication) {
 

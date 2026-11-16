@@ -65,7 +65,7 @@ export const StudentRatingPage = () => {
                                                 {idx === 2 && <span className="text-danger">3</span>}
                                             </td>
                                             <td className={`text-center fs-5 fw-bold ${getAverageColor(student.average)}`}>
-                                                {student.average}
+                                                {Number(student.average).toFixed(1)}
                                             </td>
                                         </tr>
                                     ))}
@@ -87,7 +87,7 @@ export const StudentRatingPage = () => {
                                 <span className="fs-3 ms-2 opacity-75">из {data.totalStudents}</span>
                             </div>
                             <p className="fs-5 mb-0">
-                                Средний балл: <strong className={getAverageColor(data.myAverage)}>{data.myAverage}</strong>
+                                Средний балл: <strong className={getAverageColor(data.myAverage)}>{Number(data.myAverage).toFixed(1)}</strong>
                             </p>
                         </Card.Body>
                     </Card>

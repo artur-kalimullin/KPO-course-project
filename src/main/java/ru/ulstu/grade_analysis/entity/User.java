@@ -79,4 +79,20 @@ public class User {
     }
     return sb.toString().trim();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof User other)) {
+      return false;
+    }
+    return this.id != null && this.id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

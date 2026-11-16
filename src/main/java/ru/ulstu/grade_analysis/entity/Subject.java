@@ -44,4 +44,20 @@ public class Subject {
       joinColumns = @JoinColumn(name = "subject_id"),
       inverseJoinColumns = @JoinColumn(name = "group_id"))
   private Set<Group> groups = new HashSet<>();
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof Subject other)) {
+      return false;
+    }
+    return this.id != null && this.id.equals(other.getId());
+  }
+
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }

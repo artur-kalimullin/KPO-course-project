@@ -44,7 +44,7 @@ export const Header = () => {
                         {user?.role === "ROLE_TEACHER" && (
                             <>
                                 <li className="nav-item"><NavLink to="/teacher" className={navLinkClass} onClick={closeMenu} end>Панель преподавателя</NavLink></li>
-                                <li className="nav-item"><NavLink to="/teacher/students" className={navLinkClass} onClick={closeMenu}>Списоки студентов</NavLink></li>
+                                <li className="nav-item"><NavLink to="/teacher/students" className={navLinkClass} onClick={closeMenu}>Списки студентов</NavLink></li>
                                 <li className="nav-item"><NavLink to="/teacher/grades" className={navLinkClass} onClick={closeMenu}>Выставление оценок</NavLink></li>
                                 <li className="nav-item"><NavLink to="/teacher/group-stats" className={navLinkClass} onClick={closeMenu}>Статистика успеваемости</NavLink></li>
                             </>

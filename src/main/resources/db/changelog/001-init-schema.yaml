@@ -254,7 +254,7 @@ databaseChangeLog:
                     references: users(id)
                     deleteCascade: true
               - column:
-                  name: value
+                  name: grade_value
                   type: INT
                   constraints:
                     nullable: false
