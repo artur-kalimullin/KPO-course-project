@@ -41,6 +41,7 @@ public class SecurityConfig {
                         "/api/auth/**",
                         "/",
                         "/login",
+                        "/404",
                         "/admin",
                         "/admin/**",
                         "/teacher",
@@ -61,8 +62,10 @@ public class SecurityConfig {
                     .hasRole("TEACHER")
                     .requestMatchers("/api/student/**")
                     .hasRole("STUDENT")
+                    .requestMatchers("/api/**")
+                    .authenticated()
                     .anyRequest()
-                    .authenticated())
+                    .permitAll())
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authenticationProvider(authenticationProvider())
