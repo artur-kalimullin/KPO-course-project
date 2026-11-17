@@ -82,19 +82,42 @@ public class GradeService {
   @Transactional
   public void saveGrade(String username, GradeRequest request) {
     User teacher = findTeacher(username);
+    Subject subject = findSubject(request.subjectId());
+    requireSubjectAccess(teacher, subject);
+
+    User student = findUser(request.studentId());
+    requireStudentAccess(teacher, subject, student);
 
     Grade grade =
         gradeRepository
             .findByStudentIdAndSubjectIdAndTeacherId(
-                request.studentId(), request.subjectId(), teacher.getId())
+                student.getId(), subject.getId(), teacher.getId())
             .orElseGet(Grade::new);
 
-    grade.setStudent(findUser(request.studentId()));
-    grade.setSubject(findSubject(request.subjectId()));
+    grade.setStudent(student);
+    grade.setSubject(subject);
     grade.setTeacher(teacher);
     grade.setValue(request.value());
 
     gradeRepository.save(grade);
+  }
+
+  private void requireSubjectAccess(User teacher, Subject subject) {
+    if (!subject.getTeachers().contains(teacher)) {
+      throw new ForbiddenException("Вы не ведёте этот предмет");
+    }
+  }
+
+  private void requireStudentAccess(User teacher, Subject subject, User student) {
+    boolean allowed =
+        student.getStudentGroups().stream()
+            .anyMatch(
+                group ->
+                    subject.getGroups().contains(group)
+                        && teacher.getTeacherGroups().contains(group));
+    if (!allowed) {
+      throw new ForbiddenException("Студент не входит в вашу группу по этому предмету");
+    }
   }
 
   private SubjectDetailsResponse.GroupDetails toGroupDetails(Group group) {

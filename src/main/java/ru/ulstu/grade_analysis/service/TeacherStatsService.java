@@ -12,11 +12,13 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.ulstu.grade_analysis.dto.TeacherStatsResponse;
 import ru.ulstu.grade_analysis.entity.Grade;
 import ru.ulstu.grade_analysis.entity.Group;
+import ru.ulstu.grade_analysis.entity.Subject;
 import ru.ulstu.grade_analysis.entity.User;
 import ru.ulstu.grade_analysis.repository.GradeRepository;
 import ru.ulstu.grade_analysis.repository.GroupRepository;
 import ru.ulstu.grade_analysis.repository.SubjectRepository;
 import ru.ulstu.grade_analysis.repository.UserRepository;
+import ru.ulstu.grade_analysis.service.exception.ForbiddenException;
 import ru.ulstu.grade_analysis.service.exception.NotFoundException;
 
 @Service
@@ -49,9 +51,12 @@ public class TeacherStatsService {
         groupRepository
             .findById(groupId)
             .orElseThrow(() -> new NotFoundException("Группа не найдена"));
-    subjectRepository
-        .findById(subjectId)
-        .orElseThrow(() -> new NotFoundException("Предмет не найден"));
+    Subject subject =
+        subjectRepository
+            .findById(subjectId)
+            .orElseThrow(() -> new NotFoundException("Предмет не найден"));
+
+    requireAccess(teacher, group, subject);
 
     List<User> allStudents = new ArrayList<>(group.getStudents());
     List<Grade> groupGrades = findGroupGrades(subjectId, teacher, allStudents);
@@ -87,6 +92,16 @@ public class TeacherStatsService {
         failedCount,
         distribution,
         failedStudents);
+  }
+
+  private void requireAccess(User teacher, Group group, Subject subject) {
+    boolean teachesGroup = teacher.getTeacherGroups().contains(group);
+    boolean teachesSubject = subject.getTeachers().contains(teacher);
+    boolean subjectForGroup = subject.getGroups().contains(group);
+
+    if (!teachesGroup || !teachesSubject || !subjectForGroup) {
+      throw new ForbiddenException("У вас нет доступа к этой группе или предмету");
+    }
   }
 
   private List<Grade> findGroupGrades(Long subjectId, User teacher, List<User> students) {

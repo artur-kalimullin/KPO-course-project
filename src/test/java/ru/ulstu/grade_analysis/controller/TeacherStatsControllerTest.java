@@ -78,6 +78,11 @@ class TeacherStatsControllerTest {
     s.setId(1L);
     s.setName("БД");
 
+    g.setTeachers(Set.of(teacher));
+    teacher.setTeacherGroups(Set.of(g));
+    s.setTeachers(Set.of(teacher));
+    s.setGroups(Set.of(g));
+
     Grade gr1 = new Grade();
     gr1.setStudent(st1);
     gr1.setSubject(s);
@@ -127,6 +132,11 @@ class TeacherStatsControllerTest {
     Subject s = new Subject();
     s.setId(1L);
 
+    g.setTeachers(Set.of(teacher));
+    teacher.setTeacherGroups(Set.of(g));
+    s.setTeachers(Set.of(teacher));
+    s.setGroups(Set.of(g));
+
     when(userRepository.findByUsername("teacher")).thenReturn(Optional.of(teacher));
     when(groupRepository.findById(10L)).thenReturn(Optional.of(g));
     when(subjectRepository.findById(1L)).thenReturn(Optional.of(s));
@@ -139,5 +149,31 @@ class TeacherStatsControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.failedCount").value(1))
         .andExpect(jsonPath("$.failedStudents[0].grade").value(-1));
+  }
+
+  @Test
+  void getStats_shouldReturn403_whenNoAccess() throws Exception {
+    User teacher = new User();
+    teacher.setUsername("teacher");
+    teacher.setId(1L);
+
+    Group g = new Group();
+    g.setId(10L);
+    g.setStudents(new HashSet<>());
+
+    Subject s = new Subject();
+    s.setId(1L);
+    s.setTeachers(Set.of());
+    s.setGroups(Set.of());
+
+    when(userRepository.findByUsername("teacher")).thenReturn(Optional.of(teacher));
+    when(groupRepository.findById(10L)).thenReturn(Optional.of(g));
+    when(subjectRepository.findById(1L)).thenReturn(Optional.of(s));
+
+    mockMvc
+        .perform(
+            get("/api/teacher/stats?groupId=10&subjectId=1")
+                .with(authentication(auth("teacher", "TEACHER"))))
+        .andExpect(status().isForbidden());
   }
 }
