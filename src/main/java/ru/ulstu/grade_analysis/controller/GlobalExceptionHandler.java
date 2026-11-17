@@ -82,10 +82,6 @@ public class GlobalExceptionHandler {
     return ResponseEntity.badRequest().body(new MessageResponse("Некорректный JSON"));
   }
 
-  /**
-   * Неизвестный адрес без точки в последнем сегменте считается клиентским маршрутом SPA: отдаём
-   * {@code index.html}, а страницу «404» покажет React Router.
-   */
   @ExceptionHandler(NoResourceFoundException.class)
   public ResponseEntity<?> handleNoResourceFound(
       NoResourceFoundException ex, HttpServletRequest request) throws IOException {

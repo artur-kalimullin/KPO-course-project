@@ -8,7 +8,6 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.SelectOption;
-import java.time.LocalDate;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -162,7 +161,6 @@ class TeacherStudentE2ETest {
     g.setSubject(subject);
     g.setTeacher(teacher);
     g.setValue(value);
-    g.setDate(LocalDate.now());
     gradeRepository.save(g);
   }
 

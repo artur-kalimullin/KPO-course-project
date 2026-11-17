@@ -67,6 +67,7 @@ public class UserService {
   public void createStudent(StudentCreateRequest request) {
     requirePassword(request.password());
     requireUniqueUsername(request.username(), null);
+    validateStudentCourse(request);
 
     Role role = findRole("STUDENT");
     Group group = findGroup(request.groupId());
@@ -76,7 +77,7 @@ public class UserService {
     student.setPasswordHash(passwordEncoder.encode(request.password()));
     student.setLastName(request.lastName());
     student.setFirstName(request.firstName());
-    student.setMiddleName(request.middleName());
+    student.setMiddleName(normalizeMiddleName(request.middleName()));
     student.setRole(role);
     student.setCourse(request.course());
     student.setRecordBookNumber(request.recordBookNumber());
@@ -96,14 +97,16 @@ public class UserService {
         userRepository.findById(id).orElseThrow(() -> new NotFoundException("Студент не найден"));
 
     requireUniqueUsername(request.username(), student.getUsername());
+    validateStudentCourse(request);
 
     student.setUsername(request.username());
     if (request.password() != null && !request.password().isEmpty()) {
+      requireValidPassword(request.password());
       student.setPasswordHash(passwordEncoder.encode(request.password()));
     }
     student.setLastName(request.lastName());
     student.setFirstName(request.firstName());
-    student.setMiddleName(request.middleName());
+    student.setMiddleName(normalizeMiddleName(request.middleName()));
     student.setCourse(request.course());
     student.setRecordBookNumber(request.recordBookNumber());
     student.setEducationForm(request.educationForm());
@@ -133,7 +136,7 @@ public class UserService {
     teacher.setPasswordHash(passwordEncoder.encode(request.password()));
     teacher.setLastName(request.lastName());
     teacher.setFirstName(request.firstName());
-    teacher.setMiddleName(request.middleName());
+    teacher.setMiddleName(normalizeMiddleName(request.middleName()));
     teacher.setRole(role);
 
     assignGroups(teacher, request.groupIds());
@@ -152,11 +155,12 @@ public class UserService {
 
     teacher.setUsername(request.username());
     if (request.password() != null && !request.password().isEmpty()) {
+      requireValidPassword(request.password());
       teacher.setPasswordHash(passwordEncoder.encode(request.password()));
     }
     teacher.setLastName(request.lastName());
     teacher.setFirstName(request.firstName());
-    teacher.setMiddleName(request.middleName());
+    teacher.setMiddleName(normalizeMiddleName(request.middleName()));
 
     teacher.getTeacherGroups().forEach(group -> group.getTeachers().remove(teacher));
     teacher.getTeacherGroups().clear();
@@ -189,9 +193,26 @@ public class UserService {
         });
   }
 
+  private void validateStudentCourse(StudentCreateRequest request) {
+    if ("Магистратура".equals(request.educationLevel()) && Integer.parseInt(request.course()) > 2) {
+      throw new BadRequestException("Для магистратуры доступны только 1 и 2 курсы");
+    }
+  }
+
+  private String normalizeMiddleName(String middleName) {
+    return middleName == null || middleName.isBlank() ? null : middleName.trim();
+  }
+
   private void requirePassword(String password) {
     if (password == null || password.trim().isEmpty()) {
       throw new BadRequestException("Пароль не может быть пустым");
+    }
+    requireValidPassword(password);
+  }
+
+  private void requireValidPassword(String password) {
+    if (password.length() < 6 || password.length() > 40) {
+      throw new BadRequestException("Пароль должен быть от 6 до 40 символов");
     }
   }
 

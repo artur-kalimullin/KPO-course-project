@@ -16,7 +16,6 @@ public class GradeMapper {
         grade.getSubject().getName(),
         null,
         null,
-        grade.getValue(),
-        grade.getDate());
+        grade.getValue());
   }
 }

@@ -3,7 +3,6 @@ package ru.ulstu.grade_analysis.dto;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDate;
 
 public class GradeDto {
   public record GradeRequest(
@@ -22,6 +21,5 @@ public class GradeDto {
       String subjectName,
       Long groupId,
       String groupName,
-      Integer value,
-      LocalDate date) {}
+      Integer value) {}
 }

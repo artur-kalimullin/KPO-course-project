@@ -1,6 +1,5 @@
 package ru.ulstu.grade_analysis.service;
 
-import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -94,7 +93,6 @@ public class GradeService {
     grade.setSubject(findSubject(request.subjectId()));
     grade.setTeacher(teacher);
     grade.setValue(request.value());
-    grade.setDate(LocalDate.now());
 
     gradeRepository.save(grade);
   }

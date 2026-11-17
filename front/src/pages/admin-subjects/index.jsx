@@ -9,6 +9,7 @@ export const AdminSubjectsPage = () => {
     const [groups, setGroups] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(0);
@@ -71,15 +72,17 @@ export const AdminSubjectsPage = () => {
             const method = currentSubject.id ? "PUT" : "POST";
             const url = currentSubject.id ? `/admin/subjects/${currentSubject.id}` : "/admin/subjects";
             
-            await apiFetch(url, {
+            const saved = await apiFetch(url, {
                 method: method,
                 body: JSON.stringify({ 
-                    name: currentSubject.name,
+                    name: currentSubject.name.trim(),
                     teacherIds: currentSubject.teacherIds,
                     groupIds: currentSubject.groupIds
                 })
             });
             setShowModal(false);
+            setSuccessMessage(`Предмет «${saved.name}» успешно сохранён`);
+            setTimeout(() => setSuccessMessage(""), 3000);
             loadSubjects();
         } catch (err) {
             setModalError(err.message);
@@ -102,6 +105,7 @@ export const AdminSubjectsPage = () => {
 
     const filteredTeachers = teachers.filter(t => t.fullName.toLowerCase().includes(teacherSearch.toLowerCase()));
     const filteredGroups = groups.filter(g => g.fullName.toLowerCase().includes(groupSearch.toLowerCase()));
+    const isSubjectNameValid = currentSubject.name.trim().length > 0;
 
     return (
         <div className="container py-4">
@@ -141,6 +145,7 @@ export const AdminSubjectsPage = () => {
                 </Col>
             </Row>
 
+            {successMessage && <Alert variant="success">{successMessage}</Alert>}
             {error && <Alert variant="danger">{error}</Alert>}
 
             {loading ? (
@@ -150,23 +155,27 @@ export const AdminSubjectsPage = () => {
                     <Table hover responsive variant="dark" className="mb-0">
                         <thead>
                             <tr>
-                                <th>Название</th>
-                                <th>Группы</th>
-                                <th>Преподаватели</th>
-                                <th className="text-end">Действия</th>
+                                <th style={{ width: "30%" }}>Название</th>
+                                <th style={{ width: "30%" }}>Группы</th>
+                                <th style={{ width: "30%" }}>Преподаватели</th>
+                                <th className="text-end text-nowrap" style={{ width: "10%" }}>Действия</th>
                             </tr>
                         </thead>
                         <tbody>
                             {subjects.map(s => (
                                 <tr key={s.id}>
-                                    <td className="fw-bold">{s.name}</td>
-                                    <td>
-                                        {s.groups?.length > 0 ? s.groups.map(g => g.fullName).join(", ") : <span className="text-muted">-</span>}
+                                    <td className="fw-bold cell-break">{s.name}</td>
+                                    <td className="cell-break">
+                                        {s.groups?.length > 0
+                                            ? s.groups.map(g => g.fullName).join(", ")
+                                            : <span>Нет групп</span>}
                                     </td>
-                                    <td>
-                                        {s.teachers?.length > 0 ? s.teachers.map(t => t.fullName).join(", ") : <span className="text-muted">-</span>}
+                                    <td className="cell-break">
+                                        {s.teachers?.length > 0
+                                            ? s.teachers.map(t => t.fullName).join(", ")
+                                            : <span>Нет преподавателей</span>}
                                     </td>
-                                    <td className="text-end">
+                                    <td className="text-end text-nowrap">
                                         <Button variant="outline-warning" size="sm" className="me-2" onClick={() => { 
                                             setCurrentSubject({ 
                                                 id: s.id, 
@@ -209,9 +218,11 @@ export const AdminSubjectsPage = () => {
                             <Form.Control 
                                 type="text" 
                                 required 
+                                maxLength={60}
                                 value={currentSubject.name}
                                 onChange={(e) => setCurrentSubject({...currentSubject, name: e.target.value})}
                             />
+                            <Form.Text className="text-muted">До 60 символов</Form.Text>
                         </Form.Group>
 
                         <Row>
@@ -268,7 +279,7 @@ export const AdminSubjectsPage = () => {
                     </Modal.Body>
                     <Modal.Footer className="border-secondary">
                         <Button variant="secondary" onClick={() => setShowModal(false)}>Отмена</Button>
-                        <Button variant="warning" type="submit" className="fw-bold">Сохранить</Button>
+                        <Button variant="warning" type="submit" className="fw-bold" disabled={!isSubjectNameValid}>Сохранить</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>
@@ -278,7 +289,7 @@ export const AdminSubjectsPage = () => {
                     <Modal.Title>Удаление предмета</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="fs-5">
-                    Вы уверены, что хотите удалить предмет <strong>{subjectToDelete?.name}</strong>?
+                    Вы уверены, что хотите удалить предмет <strong className="cell-break">{subjectToDelete?.name}</strong>?
                 </Modal.Body>
                 <Modal.Footer className="border-secondary">
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Отмена</Button>

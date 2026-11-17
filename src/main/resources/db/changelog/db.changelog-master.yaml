@@ -5,3 +5,5 @@ databaseChangeLog:
       file: classpath:db/changelog/002-insert-roles.yaml
   - include:
       file: classpath:db/changelog/003-insert-admin.yaml
+  - include:
+      file: classpath:db/changelog/004-insert-release-data.yaml

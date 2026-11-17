@@ -61,6 +61,18 @@ class ValidationExtendedTest {
   }
 
   @Test
+  void groupRequest_prefixTooShort() {
+    assertThat(validator.validate(new GroupRequest("ПИ", "1", "1", EducationLevel.BACHELOR)))
+        .isNotEmpty();
+  }
+
+  @Test
+  void groupRequest_prefixWithDigit() {
+    assertThat(validator.validate(new GroupRequest("ПИ1бд", "1", "1", EducationLevel.BACHELOR)))
+        .isNotEmpty();
+  }
+
+  @Test
   void groupRequest_blankCourse() {
     assertThat(validator.validate(new GroupRequest("ПИбд", "", "1", EducationLevel.BACHELOR)))
         .isNotEmpty();
@@ -92,6 +104,14 @@ class ValidationExtendedTest {
   @Test
   void studentRequest_valid() {
     assertThat(validator.validate(validStudent())).isEmpty();
+  }
+
+  @Test
+  void studentRequest_blankMiddleNameIsValid() {
+    StudentCreateRequest r =
+        new StudentCreateRequest(
+            "student", "pass", "Иван", "Иванов", "", "1", 1L, "123456", "Очная", "Бакалавриат");
+    assertThat(validator.validate(r)).isEmpty();
   }
 
   @Test
@@ -132,6 +152,22 @@ class ValidationExtendedTest {
         new StudentCreateRequest(
             "student", "p", "Иван", "", null, "1", 1L, "123456", "Очная", "Бакалавриат");
     assertThat(validator.validate(r)).isNotEmpty();
+  }
+
+  @Test
+  void studentRequest_firstNameWithDigit() {
+    StudentCreateRequest r =
+        new StudentCreateRequest(
+            "student", "p", "Иван1", "Иванов", null, "1", 1L, "123456", "Очная", "Бакалавриат");
+    assertThat(validator.validate(r)).isNotEmpty();
+  }
+
+  @Test
+  void studentRequest_middleNameWithHyphenIsValid() {
+    StudentCreateRequest r =
+        new StudentCreateRequest(
+            "student", "p", "Оби-Ван", "Кеноби", null, "1", 1L, "123456", "Очная", "Бакалавриат");
+    assertThat(validator.validate(r)).isEmpty();
   }
 
   @Test
@@ -184,6 +220,14 @@ class ValidationExtendedTest {
   @Test
   void teacherRequest_blankLastName() {
     assertThat(validator.validate(new TeacherCreateRequest("teacher", "p", "Пётр", "", null, null)))
+        .isNotEmpty();
+  }
+
+  @Test
+  void teacherRequest_lastNameWithDigit() {
+    assertThat(
+            validator.validate(
+                new TeacherCreateRequest("teacher", "p", "Пётр", "Петров1", null, null)))
         .isNotEmpty();
   }
 

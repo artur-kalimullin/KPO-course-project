@@ -179,7 +179,7 @@ export const TeacherStatsPage = () => {
                             </tbody>
                         </Table>
                     ) : (
-                        <Alert variant="success">Все студенты аттестованы! Отличная работа.</Alert>
+                        <Alert variant="success">Все студенты аттестованы!</Alert>
                     )}
                 </div>
             )}

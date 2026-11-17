@@ -5,6 +5,9 @@ import java.util.List;
 public record UserResponse(
     Long id,
     String fullName,
+    String lastName,
+    String firstName,
+    String middleName,
     String username,
     String course,
     String recordBookNumber,

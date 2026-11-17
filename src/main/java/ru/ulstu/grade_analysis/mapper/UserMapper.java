@@ -26,6 +26,9 @@ public class UserMapper {
     return new UserResponse(
         user.getId(),
         user.getFullName(),
+        user.getLastName(),
+        user.getFirstName(),
+        user.getMiddleName(),
         user.getUsername(),
         user.getCourse(),
         user.getRecordBookNumber(),
