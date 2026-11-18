@@ -17,7 +17,7 @@ export const Footer = () => {
                         <ul className="list-unstyled text-light opacity-75 mb-0">
                             <li className="mb-2">
                                 <i className="bi bi-geo-alt-fill me-2 text-warning"></i>
-                                г. Z, ул. Университетская, 15
+                                г. Z, ул. Университетская, 16
                             </li>
                             <li className="mb-2">
                                 <i className="bi bi-telephone-fill me-2 text-warning"></i>

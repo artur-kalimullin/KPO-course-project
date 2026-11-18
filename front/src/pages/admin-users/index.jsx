@@ -12,6 +12,7 @@ export const AdminUsersPage = () => {
     
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
 
     const [studentPage, setStudentPage] = useState(1);
     const [studentTotalPages, setStudentTotalPages] = useState(0);
@@ -109,6 +110,8 @@ export const AdminUsersPage = () => {
                 body: JSON.stringify(studentData)
             });
             setShowStudentModal(false);
+            setSuccessMessage(`Пользователь под логином «${studentData.username}» успешно сохранён`);
+            setTimeout(() => setSuccessMessage(""), 3000);
             loadStudents();
         } catch (err) {
             setModalError(err.message);
@@ -125,6 +128,8 @@ export const AdminUsersPage = () => {
                 body: JSON.stringify(teacherData)
             });
             setShowTeacherModal(false);
+            setSuccessMessage(`Пользователь под логином «${teacherData.username}» успешно сохранён`);
+            setTimeout(() => setSuccessMessage(""), 3000);
             loadTeachers();
         } catch (err) {
             setModalError(err.message);
@@ -145,18 +150,23 @@ export const AdminUsersPage = () => {
     const openEditStudent = (student) => {
         setEditingStudentId(student.id);
         const groupId = student.groupIds && student.groupIds.length > 0 ? student.groupIds[0] : "";
+        const level = student.educationLevel || "Бакалавриат";
+        const course =
+            level === "Магистратура" && Number(student.course) > 2
+                ? "1"
+                : student.course || "1";
         
         setStudentData({
-            lastName: student.fullName?.split(" ")[0] || "",
-            firstName: student.fullName?.split(" ")[1] || "",
-            middleName: student.fullName?.split(" ")[2] || "",
+            lastName: student.lastName || "",
+            firstName: student.firstName || "",
+            middleName: student.middleName || "",
             username: student.username,
             password: "", 
-            course: student.course || "1",
+            course: course,
             groupId: groupId,
             recordBookNumber: student.recordBookNumber || "",
             educationForm: student.educationForm || "Очная",
-            educationLevel: student.educationLevel || "Бакалавриат"
+            educationLevel: level
         });
         setModalError("");
         setShowStudentModal(true);
@@ -165,9 +175,9 @@ export const AdminUsersPage = () => {
     const openEditTeacher = (teacher) => {
         setEditingTeacherId(teacher.id);
         setTeacherData({
-            lastName: teacher.fullName?.split(" ")[0] || "",
-            firstName: teacher.fullName?.split(" ")[1] || "",
-            middleName: teacher.fullName?.split(" ")[2] || "",
+            lastName: teacher.lastName || "",
+            firstName: teacher.firstName || "",
+            middleName: teacher.middleName || "",
             username: teacher.username,
             password: "",
             groupIds: teacher.groupIds || [] 
@@ -194,6 +204,7 @@ export const AdminUsersPage = () => {
     return (
         <div className="container py-4">
             <h2 className="text-white mb-4">Управление пользователями</h2>
+            {successMessage && <Alert variant="success">{successMessage}</Alert>}
             {error && <Alert variant="danger">{error}</Alert>}
 
             <Tabs activeKey={activeTab} onSelect={(k) => setActiveTab(k)} className="mb-3 custom-tabs">
@@ -210,11 +221,20 @@ export const AdminUsersPage = () => {
                             <Col md={3}>
                                 <Form.Select value={studentFilterCourse} onChange={e => { setStudentFilterCourse(e.target.value); setStudentPage(1); }}>
                                     <option value="">Все курсы</option>
-                                    {[1,2,3,4,5].map(c => <option key={c} value={c}>{c} курс</option>)}
+                                    {[1,2,3,4,5]
+                                        .filter(c => studentFilterLevel !== "Магистратура" || c <= 2)
+                                        .map(c => <option key={c} value={c}>{c} курс</option>)}
                                 </Form.Select>
                             </Col>
                             <Col md={4}>
-                                <Form.Select value={studentFilterLevel} onChange={e => { setStudentFilterLevel(e.target.value); setStudentPage(1); }}>
+                                <Form.Select value={studentFilterLevel} onChange={e => {
+                                    const level = e.target.value;
+                                    setStudentFilterLevel(level);
+                                    if (level === "Магистратура" && Number(studentFilterCourse) > 2) {
+                                        setStudentFilterCourse("");
+                                    }
+                                    setStudentPage(1);
+                                }}>
                                     <option value="">Все уровни образования</option>
                                     <option value="Бакалавриат">Бакалавриат</option>
                                     <option value="Магистратура">Магистратура</option>
@@ -247,7 +267,7 @@ export const AdminUsersPage = () => {
                             <tbody>
                                 {students.map(s => (
                                     <tr key={s.id}>
-                                        <td>{s.fullName}</td>
+                                        <td className="cell-break">{s.fullName}</td>
                                         <td>{s.username}</td>
                                         <td>{s.course}</td>
                                         <td>{s.recordBookNumber}</td>
@@ -311,9 +331,9 @@ export const AdminUsersPage = () => {
                             <tbody>
                                 {teachers.map(t => (
                                     <tr key={t.id}>
-                                        <td>{t.fullName}</td>
+                                        <td className="cell-break">{t.fullName}</td>
                                         <td>{t.username}</td>
-                                        <td>{t.groupNames?.length > 0 ? t.groupNames.join(", ") : <span className="text-muted">Нет групп</span>}</td>
+                                        <td>{t.groupNames?.length > 0 ? t.groupNames.join(", ") : <span>Нет групп</span>}</td>
                                         <td className="text-end">
                                             <Button variant="outline-warning" size="sm" className="me-2" onClick={() => openEditTeacher(t)}>
                                                 <i className="bi bi-pencil"></i>
@@ -431,7 +451,7 @@ export const AdminUsersPage = () => {
                     <Modal.Title>Удаление пользователя</Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="fs-5">
-                    Вы уверены, что хотите удалить <strong>{userToDelete?.fullName}</strong>?
+                    Вы уверены, что хотите удалить <strong className="cell-break">{userToDelete?.fullName}</strong>?
                 </Modal.Body>
                 <Modal.Footer className="border-secondary">
                     <Button variant="secondary" onClick={() => setShowDeleteModal(false)}>Отмена</Button>

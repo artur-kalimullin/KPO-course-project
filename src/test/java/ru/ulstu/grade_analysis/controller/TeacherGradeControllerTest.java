@@ -24,6 +24,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.ulstu.grade_analysis.entity.Group;
 import ru.ulstu.grade_analysis.entity.Subject;
 import ru.ulstu.grade_analysis.entity.User;
 import ru.ulstu.grade_analysis.repository.GradeRepository;
@@ -92,6 +93,15 @@ class TeacherGradeControllerTest {
     st.setId(10L);
     Subject s = new Subject();
     s.setId(1L);
+    Group g = new Group();
+    g.setId(5L);
+    g.setTeachers(Set.of(t));
+    g.setStudents(Set.of(st));
+
+    t.setTeacherGroups(Set.of(g));
+    st.setStudentGroups(Set.of(g));
+    s.setTeachers(Set.of(t));
+    s.setGroups(Set.of(g));
 
     when(userRepository.findByUsername("teacher")).thenReturn(Optional.of(t));
     when(userRepository.findById(10L)).thenReturn(Optional.of(st));
@@ -108,6 +118,61 @@ class TeacherGradeControllerTest {
                 .content(body))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message").value("Оценка сохранена"));
+  }
+
+  @Test
+  void saveGrade_shouldReturn403_whenSubjectNotOwned() throws Exception {
+    User t = new User();
+    t.setUsername("teacher");
+    t.setId(1L);
+    Subject s = new Subject();
+    s.setId(1L);
+    s.setTeachers(Set.of());
+    s.setGroups(Set.of());
+
+    when(userRepository.findByUsername("teacher")).thenReturn(Optional.of(t));
+    when(subjectRepository.findById(1L)).thenReturn(Optional.of(s));
+
+    String body = "{\"studentId\":10,\"subjectId\":1,\"value\":5}";
+    mockMvc
+        .perform(
+            post("/api/teacher/grades")
+                .with(authentication(auth("teacher", "TEACHER")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  void saveGrade_shouldReturn403_whenStudentNotInTeacherGroup() throws Exception {
+    User t = new User();
+    t.setUsername("teacher");
+    t.setId(1L);
+    Group g = new Group();
+    g.setId(5L);
+    g.setTeachers(Set.of(t));
+    t.setTeacherGroups(Set.of(g));
+
+    Subject s = new Subject();
+    s.setId(1L);
+    s.setTeachers(Set.of(t));
+    s.setGroups(Set.of(g));
+
+    User st = new User();
+    st.setId(10L);
+
+    when(userRepository.findByUsername("teacher")).thenReturn(Optional.of(t));
+    when(subjectRepository.findById(1L)).thenReturn(Optional.of(s));
+    when(userRepository.findById(10L)).thenReturn(Optional.of(st));
+
+    String body = "{\"studentId\":10,\"subjectId\":1,\"value\":5}";
+    mockMvc
+        .perform(
+            post("/api/teacher/grades")
+                .with(authentication(auth("teacher", "TEACHER")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isForbidden());
   }
 
   @Test

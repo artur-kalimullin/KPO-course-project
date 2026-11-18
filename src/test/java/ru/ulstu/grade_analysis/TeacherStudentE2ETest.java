@@ -8,7 +8,6 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import com.microsoft.playwright.options.SelectOption;
-import java.time.LocalDate;
 import java.util.Set;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -72,13 +71,9 @@ class TeacherStudentE2ETest {
   @BeforeEach
   void setUp() {
     page = browser.newPage();
-
-    // Вся подготовка данных — в ОДНОЙ транзакции с ОДНИМ коммитом
-    // (иначе detached-entity merge ломается на teacher_groups).
     TransactionTemplate tx = new TransactionTemplate(transactionManager);
     tx.executeWithoutResult(
         status -> {
-          // Очистка БД (в той же транзакции, чтобы был тот же коннект)
           jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY FALSE");
           jdbcTemplate.execute("DELETE FROM teacher_groups");
           jdbcTemplate.execute("DELETE FROM student_groups");
@@ -91,11 +86,9 @@ class TeacherStudentE2ETest {
           jdbcTemplate.execute("DELETE FROM roles");
           jdbcTemplate.execute("SET REFERENTIAL_INTEGRITY TRUE");
 
-          // 1. Роли
           Role teacherRole = roleRepository.save(new Role(null, "TEACHER"));
           Role studentRole = roleRepository.save(new Role(null, "STUDENT"));
 
-          // 2. Преподаватель
           teacher = new User();
           teacher.setUsername("e2e_teacher");
           teacher.setPasswordHash(passwordEncoder.encode("pass"));
@@ -105,7 +98,6 @@ class TeacherStudentE2ETest {
           teacher.setRole(teacherRole);
           teacher = userRepository.save(teacher);
 
-          // 3. Группы
           groupBachelor = new Group();
           groupBachelor.setPrefix("ПИбд");
           groupBachelor.setCourse("1");
@@ -120,11 +112,9 @@ class TeacherStudentE2ETest {
           groupMaster.setEducationLevel(Group.EducationLevel.MASTER);
           groupMaster = groupRepository.save(groupMaster);
 
-          // 4. Связываем препода с группами (обе сущности уже managed)
           groupBachelor.getTeachers().add(teacher);
           groupMaster.getTeachers().add(teacher);
 
-          // 5. Студенты (обе сущности уже managed)
           User kalim =
               createStudent(
                   "e2e_kalim", "Калимуллин", "Артур", "Рамилевич", studentRole, groupBachelor);
@@ -133,14 +123,12 @@ class TeacherStudentE2ETest {
           User master =
               createStudent("e2e_master", "Магистрант", "Тест", null, studentRole, groupMaster);
 
-          // 6. Предмет
           subjectVychmat = new Subject();
           subjectVychmat.setName("Вычмат");
           subjectVychmat.getTeachers().add(teacher);
           subjectVychmat.getGroups().addAll(Set.of(groupBachelor, groupMaster));
           subjectVychmat = subjectRepository.save(subjectVychmat);
 
-          // 7. Оценки
           createGradeIfNotExists(kalim, subjectVychmat, 5);
           createGradeIfNotExists(ered, subjectVychmat, 3);
           createGradeIfNotExists(master, subjectVychmat, 0);
@@ -173,7 +161,6 @@ class TeacherStudentE2ETest {
     g.setSubject(subject);
     g.setTeacher(teacher);
     g.setValue(value);
-    g.setDate(LocalDate.now());
     gradeRepository.save(g);
   }
 
@@ -188,7 +175,6 @@ class TeacherStudentE2ETest {
     page.locator("button[type='submit']").click();
     page.waitForURL("**/teacher");
 
-    // Списки студентов
     page.locator("a.nav-link[href='/teacher/students']").click();
     page.waitForURL("**/teacher/students");
 
@@ -201,7 +187,6 @@ class TeacherStudentE2ETest {
     assertThat(page.locator("table tbody")).containsText("Калимуллин Артур Рамилевич");
     assertThat(page.locator("table tbody")).containsText("Ередавкин Роман");
 
-    // Выставление оценок
     page.locator("a.nav-link[href='/teacher/grades']").click();
     page.waitForURL("**/teacher/grades");
 
@@ -210,26 +195,22 @@ class TeacherStudentE2ETest {
         () -> page.locator("select").first().selectOption(new SelectOption().setLabel("Вычмат")));
     page.waitForSelector("text=Калимуллин Артур Рамилевич");
 
-    // Калимуллину 5
     page.locator("tr:has-text('Калимуллин Артур Рамилевич')").locator("button").click();
     page.locator(".modal-content select").selectOption(new SelectOption().setLabel("5 (Отлично)"));
     page.locator("button:has-text('Сохранить')").click();
     page.waitForSelector("text=Оценка для Калимуллин Артур Рамилевич успешно сохранена!");
 
-    // Ередавкину 3
     page.locator("tr:has-text('Ередавкин Роман')").locator("button").click();
     page.locator(".modal-content select")
         .selectOption(new SelectOption().setLabel("3 (Удовлетворительно)"));
     page.locator("button:has-text('Сохранить')").click();
     page.waitForSelector("text=Оценка для Ередавкин Роман успешно сохранена!");
 
-    // Магистранту Неявку
     page.locator("tr:has-text('Магистрант Тест')").locator("button").click();
     page.locator(".modal-content select").selectOption(new SelectOption().setLabel("Неявка"));
     page.locator("button:has-text('Сохранить')").click();
     page.waitForSelector("text=Оценка для Магистрант Тест успешно сохранена!");
 
-    // Статистика
     page.locator("a.nav-link[href='/teacher/group-stats']").click();
     page.waitForURL("**/teacher/group-stats");
 
@@ -257,26 +238,21 @@ class TeacherStudentE2ETest {
     page.locator("button:has-text('Выйти')").click();
     page.locator(".modal-footer button:has-text('Выйти')").click();
 
-    // Ждем, пока произойдет выход (URL перестанет содержать /teacher)
     page.waitForURL(url -> !url.toString().contains("/teacher"));
 
-    // Явно переходим на страницу входа
     page.navigate("http://localhost:" + port + "/login");
     page.waitForURL("**/login");
 
-    // Далее логинимся под студентом
     page.locator("input[type='text']").fill("e2e_ered");
     page.locator("input[type='password']").fill("pass");
     page.locator("button[type='submit']").click();
     page.waitForURL("**/student");
 
-    // Мои оценки
     page.locator("a.nav-link[href='/student/grades']").click();
     page.waitForURL("**/student/grades");
     page.waitForSelector("text=Вычмат");
     assertThat(page.locator("tr:has-text('Вычмат')").locator("td").nth(1)).containsText("3");
 
-    // Рейтинг в группе
     page.locator("a.nav-link[href='/student/rating']").click();
     page.waitForURL("**/student/rating");
     page.waitForSelector("text=Топ-3 студента");

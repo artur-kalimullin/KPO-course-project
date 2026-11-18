@@ -10,6 +10,7 @@ public class SpaController {
       value = {
         "/",
         "/login",
+        "/404",
         "/admin",
         "/admin/**",
         "/teacher",

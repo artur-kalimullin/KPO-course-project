@@ -3,7 +3,6 @@ package ru.ulstu.grade_analysis.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDate;
 import java.util.HashSet;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,11 +88,8 @@ class GradeRepositoryTest {
 
     subject1 = subjectRepository.save(new Subject(null, "Math", new HashSet<>(), new HashSet<>()));
 
-    g1 =
-        gradeRepository.save(
-            new Grade(null, student1, subject1, teacher1, 5, LocalDate.of(2025, 1, 15)));
-    gradeRepository.save(
-        new Grade(null, student2, subject1, teacher1, 3, LocalDate.of(2025, 2, 20)));
+    g1 = gradeRepository.save(new Grade(null, student1, subject1, teacher1, 5));
+    gradeRepository.save(new Grade(null, student2, subject1, teacher1, 3));
     em.flush();
   }
 

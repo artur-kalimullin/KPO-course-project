@@ -134,6 +134,42 @@ class UserControllerTest {
   }
 
   @Test
+  void createStudent_shouldReturn400_whenPasswordTooShort() throws Exception {
+    String body =
+        "{\"username\":\"student\",\"password\":\"12345\","
+            + "\"firstName\":\"Иван\",\"lastName\":\"Иванов\",\"course\":\"1\","
+            + "\"groupId\":1,\"recordBookNumber\":\"123456\","
+            + "\"educationForm\":\"Очная\",\"educationLevel\":\"Бакалавриат\"}";
+
+    mockMvc
+        .perform(
+            post("/api/admin/users/students")
+                .with(authentication(auth("admin", "ADMIN")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Пароль должен быть от 6 до 40 символов"));
+  }
+
+  @Test
+  void createStudent_shouldReturn400_whenMasterCourseIsFive() throws Exception {
+    String body =
+        "{\"username\":\"student\",\"password\":\"pass123\","
+            + "\"firstName\":\"Иван\",\"lastName\":\"Иванов\",\"course\":\"5\","
+            + "\"groupId\":1,\"recordBookNumber\":\"123456\","
+            + "\"educationForm\":\"Очная\",\"educationLevel\":\"Магистратура\"}";
+
+    mockMvc
+        .perform(
+            post("/api/admin/users/students")
+                .with(authentication(auth("admin", "ADMIN")))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").value("Для магистратуры доступны только 1 и 2 курсы"));
+  }
+
+  @Test
   void createStudent_shouldReturn400_whenUsernameTaken() throws Exception {
     when(userRepository.findByUsername("student")).thenReturn(Optional.of(new User()));
 
