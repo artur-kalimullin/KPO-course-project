@@ -82,7 +82,7 @@ export const StudentGradesPage = () => {
                     <div className="card bg-dark bg-opacity-75 text-white shadow border-0 mb-4 p-3 text-center">
                         <h5 className="text-light opacity-75 mb-2">Средний балл</h5>
                         <h1 className={`display-4 fw-bold mb-0 ${getAverageColor(data.average)}`}>
-                            {data.average}
+                            {Number(data.average).toFixed(1)}
                         </h1>
                     </div>
 

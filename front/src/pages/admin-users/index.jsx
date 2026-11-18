@@ -110,7 +110,7 @@ export const AdminUsersPage = () => {
                 body: JSON.stringify(studentData)
             });
             setShowStudentModal(false);
-            setSuccessMessage(`Пользователь под логином ${studentData.username} успешно сохранён`);
+            setSuccessMessage(`Пользователь под логином «${studentData.username}» успешно сохранён`);
             setTimeout(() => setSuccessMessage(""), 3000);
             loadStudents();
         } catch (err) {
@@ -128,7 +128,7 @@ export const AdminUsersPage = () => {
                 body: JSON.stringify(teacherData)
             });
             setShowTeacherModal(false);
-            setSuccessMessage(`Пользователь под логином ${teacherData.username} успешно сохранён`);
+            setSuccessMessage(`Пользователь под логином «${teacherData.username}» успешно сохранён`);
             setTimeout(() => setSuccessMessage(""), 3000);
             loadTeachers();
         } catch (err) {
