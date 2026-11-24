@@ -131,6 +131,7 @@ databaseChangeLog:
                   type: VARCHAR(60)
                   constraints:
                     nullable: false
+                    unique: true
 
         - createTable:
             tableName: subject_groups

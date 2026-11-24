@@ -1,7 +1,7 @@
 package ru.ulstu.grade_analysis.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeResponse;
+import ru.ulstu.grade_analysis.dto.GradeResponse;
 import ru.ulstu.grade_analysis.entity.Grade;
 
 @Component

@@ -7,7 +7,7 @@ import jakarta.validation.Validator;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeRequest;
+import ru.ulstu.grade_analysis.dto.GradeRequest;
 import ru.ulstu.grade_analysis.dto.GroupRequest;
 import ru.ulstu.grade_analysis.dto.LoginRequest;
 import ru.ulstu.grade_analysis.dto.StudentCreateRequest;
@@ -252,7 +252,7 @@ class ValidationExtendedTest {
     assertThat(validator.validate(new SubjectRequest("a".repeat(201), null, null))).isNotEmpty();
   }
 
-  // ---------- GradeDto.GradeRequest ----------
+  // ---------- GradeRequest ----------
   @Test
   void gradeRequest_valid() {
     assertThat(validator.validate(new GradeRequest(1L, 2L, 5))).isEmpty();

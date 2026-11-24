@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeRequest;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeResponse;
 import ru.ulstu.grade_analysis.dto.GroupResponse.StudentShortDto;
 import ru.ulstu.grade_analysis.dto.SubjectResponse.GroupShortDto;
 import ru.ulstu.grade_analysis.dto.SubjectResponse.TeacherShortDto;
