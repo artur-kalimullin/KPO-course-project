@@ -1,0 +1,19 @@
+.not-found-card {
+    max-width: 560px;
+    backdrop-filter: blur(6px);
+}
+
+.not-found-code {
+    font-size: clamp(5rem, 18vw, 9rem);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    color: #ffd700;
+    text-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+.not-found-card p {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+}

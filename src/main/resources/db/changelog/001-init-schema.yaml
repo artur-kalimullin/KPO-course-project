@@ -128,9 +128,10 @@ databaseChangeLog:
                     primaryKey: true
               - column:
                   name: name
-                  type: VARCHAR(200)
+                  type: VARCHAR(60)
                   constraints:
                     nullable: false
+                    unique: true
 
         - createTable:
             tableName: subject_groups
@@ -258,12 +259,42 @@ databaseChangeLog:
                   type: INT
                   constraints:
                     nullable: false
-              - column:
-                  name: grade_date
-                  type: DATE
-                  constraints:
-                    nullable: false
         - addUniqueConstraint:
             tableName: grades
             columnNames: student_id, subject_id, teacher_id
             constraintName: uk_grade_student_subject_teacher
+
+        - addUniqueConstraint:
+            tableName: subjects
+            columnNames: name
+            constraintName: uk_subjects_name
+
+        - sql:
+            sql: |
+              ALTER TABLE subjects
+                ADD CONSTRAINT chk_subjects_name_not_empty
+                CHECK (name <> '');
+
+              ALTER TABLE groups
+                ADD CONSTRAINT chk_groups_prefix
+                CHECK (prefix ~ '^[А-Яа-яЁёA-Za-z]{3,20}$');
+
+              ALTER TABLE users
+                ADD CONSTRAINT chk_users_last_name
+                CHECK (last_name ~ '^[А-Яа-яЁёA-Za-z-]{1,60}$');
+
+              ALTER TABLE users
+                ADD CONSTRAINT chk_users_first_name
+                CHECK (first_name ~ '^[А-Яа-яЁёA-Za-z-]{1,60}$');
+
+              ALTER TABLE users
+                ADD CONSTRAINT chk_users_middle_name
+                CHECK (middle_name IS NULL OR middle_name ~ '^[А-Яа-яЁёA-Za-z-]{1,60}$');
+
+              ALTER TABLE users
+                ADD CONSTRAINT chk_users_record_book
+                CHECK (record_book_number IS NULL OR record_book_number ~ '^[0-9]{6}$');
+
+              ALTER TABLE grades
+                ADD CONSTRAINT chk_grades_value
+                CHECK (grade_value BETWEEN 0 AND 5);

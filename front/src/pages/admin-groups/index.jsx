@@ -1,5 +1,5 @@
 import { CustomPagination } from "../../widgets/pagination";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "../../shared/api";
 import { Modal, Button, Table, Form, Spinner, Alert, Row, Col } from "react-bootstrap";
 
@@ -7,6 +7,7 @@ export const AdminGroupsPage = () => {
     const [groups, setGroups] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState("");
     const [modalError, setModalError] = useState("");
 
     const [page, setPage] = useState(1);
@@ -20,12 +21,14 @@ export const AdminGroupsPage = () => {
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [groupToDelete, setGroupToDelete] = useState(null);
+    const requestIdRef = useRef(0);
 
     useEffect(() => {
         loadGroups();
     }, [page, filterCourse, filterLevel, searchQuery]);
 
     const loadGroups = async () => {
+        const requestId = ++requestIdRef.current;
         try {
             setLoading(true);
             let url = `/admin/groups?page=${page}`;
@@ -34,12 +37,15 @@ export const AdminGroupsPage = () => {
             if (searchQuery) url += `&search=${encodeURIComponent(searchQuery)}`;
 
             const data = await apiFetch(url);
+            if (requestId !== requestIdRef.current) return;
+
             setGroups(data?.content || []);
             setTotalPages(data?.totalPages || 0);
         } catch (err) {
+            if (requestId !== requestIdRef.current) return;
             setError("Ошибка загрузки данных");
         } finally {
-            setLoading(false);
+            if (requestId === requestIdRef.current) setLoading(false);
         }
     };
 
@@ -50,7 +56,7 @@ export const AdminGroupsPage = () => {
             const method = currentGroup.id ? "PUT" : "POST";
             const url = currentGroup.id ? `/admin/groups/${currentGroup.id}` : "/admin/groups";
             
-            await apiFetch(url, {
+            const saved = await apiFetch(url, {
                 method: method,
                 body: JSON.stringify({
                     prefix: currentGroup.prefix,
@@ -60,6 +66,8 @@ export const AdminGroupsPage = () => {
                 })
             });
             setShowGroupModal(false);
+            setSuccessMessage(`Группа «${saved.fullName}» успешно сохранена`);
+            setTimeout(() => setSuccessMessage(""), 3000);
             loadGroups();
         } catch (err) {
             setModalError(err.message);
@@ -69,9 +77,7 @@ export const AdminGroupsPage = () => {
     const handleOpenDelete = (group) => {
         setGroupToDelete(group);
         setShowDeleteModal(true);
-    };
-
-    const confirmDeleteGroup = async () => {
+    };    const confirmDeleteGroup = async () => {
         try {
             await apiFetch(`/admin/groups/${groupToDelete.id}`, { method: "DELETE" });
             setShowDeleteModal(false);
@@ -81,6 +87,12 @@ export const AdminGroupsPage = () => {
             setShowDeleteModal(false);
         }
     };
+
+    const prefixValue = currentGroup.prefix.trim();
+    const isPrefixValid =
+        prefixValue.length >= 3 &&
+        prefixValue.length <= 20 &&
+        /^[А-Яа-яЁёA-Za-z]+$/.test(prefixValue);
 
     return (
         <div className="container py-4">
@@ -104,7 +116,14 @@ export const AdminGroupsPage = () => {
                     />
                 </Col>
                 <Col md={3}>
-                    <Form.Select value={filterLevel} onChange={e => { setFilterLevel(e.target.value); setPage(1); }}>
+                    <Form.Select value={filterLevel} onChange={e => {
+                        const level = e.target.value;
+                        setFilterLevel(level);
+                        if (level === "MASTER" && Number(filterCourse) > 2) {
+                            setFilterCourse("");
+                        }
+                        setPage(1);
+                    }}>
                         <option value="">Все уровни образования</option>
                         <option value="BACHELOR">Бакалавриат</option>
                         <option value="MASTER">Магистратура</option>
@@ -113,11 +132,14 @@ export const AdminGroupsPage = () => {
                 <Col md={3}>
                     <Form.Select value={filterCourse} onChange={e => { setFilterCourse(e.target.value); setPage(1); }}>
                         <option value="">Все курсы</option>
-                        {[1,2,3,4,5].map(c => <option key={c} value={c}>{c} курс</option>)}
+                        {[1,2,3,4,5]
+                            .filter(c => filterLevel !== "MASTER" || c <= 2)
+                            .map(c => <option key={c} value={c}>{c} курс</option>)}
                     </Form.Select>
                 </Col>
             </Row>
 
+            {successMessage && <Alert variant="success">{successMessage}</Alert>}
             {error && <Alert variant="danger">{error}</Alert>}
 
             {loading ? (
@@ -129,25 +151,25 @@ export const AdminGroupsPage = () => {
                             <tr>
                                 <th style={{ width: "25%" }}>Название группы</th>
                                 <th style={{ width: "25%" }}>Уровень образования</th>
-                                <th style={{ width: "45%" }}>Студенты</th>
-                                <th className="text-end" style={{ width: "15%" }}>Действия</th>
+                                <th style={{ width: "35%" }}>Студенты</th>
+                                <th className="text-end text-nowrap" style={{ width: "15%" }}>Действия</th>
                             </tr>
                         </thead>
                         <tbody>
                             {groups?.map(g => (
                                 <tr key={g.id}>
-                                    <td className="fw-bold align-middle">{g.fullName}</td>
-                                    <td className="align-middle">{g.educationLevel === "BACHELOR" ? "Бакалавриат" : "Магистратура"}</td>
+                                    <td className="fw-bold align-middle cell-break">{g.fullName}</td>
+                                    <td className="align-middle text-nowrap">{g.educationLevel === "BACHELOR" ? "Бакалавриат" : "Магистратура"}</td>
                                     <td className="align-middle">
                                         {g.students && g.students.length > 0 ? (
-                                            <div style={{ maxHeight: "80px", overflowY: "auto", fontSize: "0.9rem" }}>
+                                            <div className="cell-break" style={{ maxHeight: "80px", overflowY: "auto", fontSize: "0.9rem" }}>
                                                 {g.students.map(s => s.fullName).join(", ")}
                                             </div>
                                         ) : (
                                             <span>Нет студентов</span>
                                         )}
                                     </td>
-                                    <td className="text-end align-middle">
+                                    <td className="text-end align-middle text-nowrap">
                                         <Button variant="outline-warning" size="sm" className="me-2" onClick={() => 
                                             { setCurrentGroup(g); setModalError(""); setShowGroupModal(true); }}>
                                             <i className="bi bi-pencil"></i>
@@ -200,7 +222,23 @@ export const AdminGroupsPage = () => {
                         <Row>
                             <Col md={8} className="mb-3">
                                 <Form.Label>Именование (например: ПИбд)</Form.Label>
-                                <Form.Control type="text" required value={currentGroup.prefix} onChange={(e) => setCurrentGroup({...currentGroup, prefix: e.target.value})} />
+                                <Form.Control
+                                    type="text"
+                                    required
+                                    minLength={3}
+                                    maxLength={20}
+                                    value={currentGroup.prefix}
+                                    isInvalid={currentGroup.prefix.length > 0 && !isPrefixValid}
+                                    onChange={(e) => {
+                                        const lettersOnly = e.target.value
+                                            .replace(/[^А-Яа-яЁёA-Za-z]/g, "")
+                                            .slice(0, 20);
+                                        setCurrentGroup({ ...currentGroup, prefix: lettersOnly });
+                                    }}
+                                />
+                                <Form.Control.Feedback type="invalid">
+                                    От 3 до 20 букв, без цифр и символов
+                                </Form.Control.Feedback>
                             </Col>
                             <Col md={4} className="mb-3">
                                 <Form.Label>Подгруппа</Form.Label>
@@ -220,7 +258,7 @@ export const AdminGroupsPage = () => {
                     </Modal.Body>
                     <Modal.Footer className="border-secondary">
                         <Button variant="secondary" onClick={() => setShowGroupModal(false)}>Отмена</Button>
-                        <Button variant="warning" type="submit" className="fw-bold">Сохранить</Button>
+                        <Button variant="warning" type="submit" className="fw-bold" disabled={!isPrefixValid}>Сохранить</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>

@@ -2,11 +2,8 @@ package ru.ulstu.grade_analysis.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeRequest;
-import ru.ulstu.grade_analysis.dto.GradeDto.GradeResponse;
 import ru.ulstu.grade_analysis.dto.GroupResponse.StudentShortDto;
 import ru.ulstu.grade_analysis.dto.SubjectResponse.GroupShortDto;
 import ru.ulstu.grade_analysis.dto.SubjectResponse.TeacherShortDto;
@@ -158,8 +155,7 @@ class DtoTest {
 
   @Test
   void gradeResponse_accessors() {
-    LocalDate date = LocalDate.of(2025, 1, 1);
-    GradeResponse r = new GradeResponse(1L, 10L, "Ivanov Ivan", 20L, "Math", 30L, "P-11", 5, date);
+    GradeResponse r = new GradeResponse(1L, 10L, "Ivanov Ivan", 20L, "Math", 30L, "P-11", 5);
     assertThat(r.id()).isEqualTo(1L);
     assertThat(r.studentId()).isEqualTo(10L);
     assertThat(r.studentFullName()).isEqualTo("Ivanov Ivan");
@@ -168,6 +164,5 @@ class DtoTest {
     assertThat(r.groupId()).isEqualTo(30L);
     assertThat(r.groupName()).isEqualTo("P-11");
     assertThat(r.value()).isEqualTo(5);
-    assertThat(r.date()).isEqualTo(date);
   }
 }

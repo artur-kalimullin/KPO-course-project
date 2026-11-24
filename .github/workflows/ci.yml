@@ -79,7 +79,6 @@ jobs:
                 return "n/a (0/0)"
             return f"{covered / total * 100:.2f}% ({covered}/{total})"
 
-        # --- Парсинг JaCoCo CSV ---
         jacoco_csv = Path("target/site/jacoco/jacoco.csv")
         instr_missed = instr_covered = 0
         branch_missed = branch_covered = 0
@@ -97,7 +96,6 @@ jobs:
             instr_text = "n/a (нет jacoco.csv)"
             branch_text = "n/a (нет jacoco.csv)"
 
-        # --- Парсинг результатов тестов Surefire XML ---
         tests = failures = errors = skipped = 0
         test_time = 0.0
         xml_reports = glob.glob("target/surefire-reports/TEST-*.xml")
@@ -110,7 +108,6 @@ jobs:
             skipped += int(root.attrib.get("skipped", 0))
             test_time += float(root.attrib.get("time", 0.0))
 
-        # Fallback на TXT, если XML не найдены
         if not xml_reports:
             for txt_path in glob.glob("target/surefire-reports/*.txt"):
                 text = Path(txt_path).read_text(encoding="utf-8", errors="ignore")
@@ -128,7 +125,6 @@ jobs:
         passed = tests - failures - errors - skipped
         failed = failures + errors
 
-        # --- Формирование Markdown-таблицы (без ошибок отступов YAML) ---
         md_lines = [
             "### Сводка метрик качества",
             "",
@@ -147,7 +143,6 @@ jobs:
         
         print(md)
         
-        # Запись в интерфейс GitHub Actions (Summary)
         summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
         if summary_path:
             with open(summary_path, "a", encoding="utf-8") as f:

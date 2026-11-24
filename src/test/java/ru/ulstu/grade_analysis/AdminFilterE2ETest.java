@@ -119,7 +119,7 @@ class AdminFilterE2ETest {
 
     page.locator("button:has-text('Добавить группу')").click();
 
-    page.locator(".modal-content input[type='text']").fill("Э2Э");
+    page.locator(".modal-content input[type='text']").fill("ЭТЭ");
 
     page.waitForResponse(
         response ->
@@ -130,9 +130,9 @@ class AdminFilterE2ETest {
     page.waitForResponse(
         response ->
             response.url().contains("/api/admin/groups?page=1&search=") && response.status() == 200,
-        () -> page.locator("input[placeholder='Поиск по названию']").fill("Э2Э"));
+        () -> page.locator("input[placeholder='Поиск по названию']").fill("ЭТЭ"));
 
-    page.waitForSelector("text=Э2Э-11");
-    assertThat(page.locator("td:has-text('Э2Э-11')")).isVisible();
+    page.waitForSelector("text=ЭТЭ-11");
+    assertThat(page.locator("td:has-text('ЭТЭ-11')")).isVisible();
   }
 }

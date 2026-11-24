@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "../shared/auth";
 import { Header } from "../widgets/header";
 import { Footer } from "../widgets/footer";
 import { MainPage } from "../pages/main-page";
+import { NotFoundPage } from "../pages/not-found";
 import { LoginPage } from "../pages/login-page";
 import { AdminDashboard } from "../pages/admin-dashboard";
 import { AdminGroupsPage } from "../pages/admin-groups";
@@ -19,7 +20,13 @@ import { StudentRatingPage } from "../pages/student-rating";
 const ProtectedRoute = ({ children, allowedRole }) => {
     const { user } = useAuth();
     if (!user) return <Navigate to="/login" replace />;
-    if (allowedRole && user.role !== allowedRole) return <Navigate to="/" replace />;
+    if (allowedRole && user.role !== allowedRole) {
+        return (
+            <div className="d-flex align-items-center flex-grow-1">
+                <NotFoundPage />
+            </div>
+        );
+    }
     return children;
 };
 
@@ -92,7 +99,17 @@ export const App = () => {
                                 </ProtectedRoute>
                             } />                                                     
 
-                            <Route path="*" element={<Navigate to="/" replace />} />
+                            <Route path="/404" element={
+                                <div className="d-flex align-items-center flex-grow-1">
+                                    <NotFoundPage />
+                                </div>
+                            } />
+
+                            <Route path="*" element={
+                                <div className="d-flex align-items-center flex-grow-1">
+                                    <NotFoundPage />
+                                </div>
+                            } />
                         </Routes>
                     </main>
                     <Footer />

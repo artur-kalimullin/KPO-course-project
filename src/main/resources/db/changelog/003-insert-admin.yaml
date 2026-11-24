@@ -19,8 +19,5 @@ databaseChangeLog:
                   name: first_name
                   value: Системы
               - column:
-                  name: middle_name
-                  value: ""
-              - column:
                   name: role_id
                   value: 1

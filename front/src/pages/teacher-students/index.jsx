@@ -101,7 +101,7 @@ export const TeacherStudentsPage = () => {
                             <tbody>
                                 {students.map(s => (
                                     <tr key={s.id}>
-                                        <td className="fw-bold">{s.fullName}</td>
+                                        <td className="fw-bold cell-break">{s.fullName}</td>
                                     </tr>
                                 ))}
                                 {students.length === 0 && (

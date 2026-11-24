@@ -29,7 +29,7 @@ logging:
     liquibase: DEBUG
 
 jwt:
-  secret: "verySecretKeyForJWTTokenGenerationMustBeLongEnough12345666"
+  secret: ${JWT_SECRET}
   expiration: 86400000
 
 server:

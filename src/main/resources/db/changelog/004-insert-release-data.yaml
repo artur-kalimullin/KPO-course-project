@@ -1,0 +1,345 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-insert-release-data
+      author: kalimullin
+      comment: Тестовые группы, пользователи, предметы и оценки для демонстрации
+      changes:
+        - insert:
+            tableName: groups
+            columns:
+              - column:
+                  name: prefix
+                  value: "ПИбд"
+              - column:
+                  name: course
+                  value: "1"
+              - column:
+                  name: subgroup
+                  value: "4"
+              - column:
+                  name: education_level
+                  value: "BACHELOR"
+        - insert:
+            tableName: groups
+            columns:
+              - column:
+                  name: prefix
+                  value: "ПИМбд"
+              - column:
+                  name: course
+                  value: "2"
+              - column:
+                  name: subgroup
+                  value: "2"
+              - column:
+                  name: education_level
+                  value: "MASTER"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "kalimullin"
+              - column:
+                  name: password_hash
+                  value: "$2a$10$XaUDuX2xKWDYE0IEriLQ4eEiJo0iIEckwZMHL7AAvyQc3ltneBiiG"
+              - column:
+                  name: last_name
+                  value: "Калимуллин"
+              - column:
+                  name: first_name
+                  value: "Артур"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'STUDENT')"
+              - column:
+                  name: course
+                  value: "1"
+              - column:
+                  name: record_book_number
+                  value: "100001"
+              - column:
+                  name: education_form
+                  value: "Очная"
+              - column:
+                  name: education_level
+                  value: "Бакалавриат"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "eredavkin"
+              - column:
+                  name: password_hash
+                  value: "$2a$10$XaUDuX2xKWDYE0IEriLQ4eEiJo0iIEckwZMHL7AAvyQc3ltneBiiG"
+              - column:
+                  name: last_name
+                  value: "Ередавкин"
+              - column:
+                  name: first_name
+                  value: "Роман"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'STUDENT')"
+              - column:
+                  name: course
+                  value: "1"
+              - column:
+                  name: record_book_number
+                  value: "100002"
+              - column:
+                  name: education_form
+                  value: "Очная"
+              - column:
+                  name: education_level
+                  value: "Бакалавриат"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "kenobi"
+              - column:
+                  name: password_hash
+                  value: "$2a$10$XaUDuX2xKWDYE0IEriLQ4eEiJo0iIEckwZMHL7AAvyQc3ltneBiiG"
+              - column:
+                  name: last_name
+                  value: "Магистр"
+              - column:
+                  name: first_name
+                  value: "Оби-Ван"
+              - column:
+                  name: middle_name
+                  value: "Кеноби"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'STUDENT')"
+              - column:
+                  name: course
+                  value: "2"
+              - column:
+                  name: record_book_number
+                  value: "100003"
+              - column:
+                  name: education_form
+                  value: "Очная"
+              - column:
+                  name: education_level
+                  value: "Магистратура"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "ankilov"
+              - column:
+                  name: password_hash
+                  value: "$2a$10$XaUDuX2xKWDYE0IEriLQ4eEiJo0iIEckwZMHL7AAvyQc3ltneBiiG"
+              - column:
+                  name: last_name
+                  value: "Анкилов"
+              - column:
+                  name: first_name
+                  value: "Андрей"
+              - column:
+                  name: middle_name
+                  value: "Владимирович"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'TEACHER')"
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  value: "m.koval"
+              - column:
+                  name: password_hash
+                  value: "$2a$10$XaUDuX2xKWDYE0IEriLQ4eEiJo0iIEckwZMHL7AAvyQc3ltneBiiG"
+              - column:
+                  name: last_name
+                  value: "Коваль"
+              - column:
+                  name: first_name
+                  value: "Максим"
+              - column:
+                  name: middle_name
+                  value: "Олегович"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'TEACHER')"
+        - insert:
+            tableName: student_groups
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'kalimullin')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИбд' AND course = '1' AND subgroup = '4')"
+
+        - insert:
+            tableName: student_groups
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'eredavkin')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИбд' AND course = '1' AND subgroup = '4')"
+
+        - insert:
+            tableName: student_groups
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'kenobi')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИМбд' AND course = '2' AND subgroup = '2')"
+        - insert:
+            tableName: teacher_groups
+            columns:
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИбд' AND course = '1' AND subgroup = '4')"
+        - insert:
+            tableName: teacher_groups
+            columns:
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИМбд' AND course = '2' AND subgroup = '2')"
+        - insert:
+            tableName: teacher_groups
+            columns:
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'm.koval')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИМбд' AND course = '2' AND subgroup = '2')"
+        - insert:
+            tableName: subjects
+            columns:
+              - column:
+                  name: name
+                  value: "Высшая математика"
+
+        - insert:
+            tableName: subjects
+            columns:
+              - column:
+                  name: name
+                  value: "Алгебра логики"
+        - insert:
+            tableName: teacher_subjects
+            columns:
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+        - insert:
+            tableName: teacher_subjects
+            columns:
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'm.koval')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Алгебра логики')"
+        - insert:
+            tableName: subject_groups
+            columns:
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИбд' AND course = '1' AND subgroup = '4')"
+        - insert:
+            tableName: subject_groups
+            columns:
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИМбд' AND course = '2' AND subgroup = '2')"
+        - insert:
+            tableName: subject_groups
+            columns:
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Алгебра логики')"
+              - column:
+                  name: group_id
+                  valueComputed: "(SELECT id FROM groups WHERE prefix = 'ПИМбд' AND course = '2' AND subgroup = '2')"
+        - insert:
+            tableName: grades
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'kalimullin')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: grade_value
+                  valueNumeric: 5
+        - insert:
+            tableName: grades
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'eredavkin')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: grade_value
+                  valueNumeric: 3
+        - insert:
+            tableName: grades
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'kenobi')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Высшая математика')"
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'ankilov')"
+              - column:
+                  name: grade_value
+                  valueNumeric: 0
+        - insert:
+            tableName: grades
+            columns:
+              - column:
+                  name: student_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'kenobi')"
+              - column:
+                  name: subject_id
+                  valueComputed: "(SELECT id FROM subjects WHERE name = 'Алгебра логики')"
+              - column:
+                  name: teacher_id
+                  valueComputed: "(SELECT id FROM users WHERE username = 'm.koval')"
+              - column:
+                  name: grade_value
+                  valueNumeric: 3
